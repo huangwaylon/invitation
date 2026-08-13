@@ -49,49 +49,32 @@ comment next to the code it governs; read that first.
 
 ## The trail
 
-- **All trail geometry derives from `--trail-x`, `--trail-node-size`, `--trail-gutter` and
-  `--trail-tile-*`.** Put a literal pixel value in `trail.css` and the path and the discs drift
-  apart at some width you are not looking at. The first three are `clamp()`ed, which is what makes
-  the layout hold at 320px with no media query.
-- **The path is ONE background on `.trail`, never one per waypoint.** A background per section
-  restarts the wave at each section's top edge, so the curve arrives at a heading mid-swing and
-  leaves it from the centre — a sideways jump at every waypoint, and the disc sitting there is only
-  tangent to it, so it does not hide it. This is the constraint that made the curve possible at
-  all; the straight version could get away with per-segment.
-- **The path is a TILED SVG, never a stretched one.** One full wave at its drawn size, repeated
-  with `repeat-y`. Scaling a single SVG to the trail's height needs `preserveAspectRatio: none`,
-  which stretches the dashes and the amplitude with it — the same path would be a ripple on a short
-  page and a zigzag on a long one.
-- **THE DASH PERIOD IS DERIVED, NOT CHOSEN: the tile's arc length must be a whole multiple of it.**
-  Every tile restarts its dash pattern at phase zero, so anything else steps the dashes sideways at
-  every tile boundary down the page. The spine is 476.110017 / 52; the hero's rule is not tiled and
-  instead solves for ending on a dash rather than mid-gap. `test/trail.test.js` re-derives both from
-  the stylesheets — including the tangent continuity at the tile seam, which a symmetric-looking path
-  can fail while looking fine in isolation.
-- **THE LOOP MUST STILL BE A LOOP.** Every other assertion about the path would pass on a plain
-  wave, so one test checks that it genuinely self-intersects. It is attached to the path at a single
-  point and adds no height, which is why it can be dropped into a wave without a corner: a loop is
-  entered and left on the same tangent.
-- **The loop is an ellipse elongated ALONG the path, and it cannot simply be scaled up.** It hangs
-  off a diagonal, so a circle's width and height grow together and a circle big enough to read
-  escapes the disc radius. Stretching it along the tangent buys height, which is free here, for no
-  extra width.
-- **The figure's reach must stay under `--trail-node-size / 2`.** That is what makes a curving,
-  looping path free: the disc is centred on the mean line, so as long as the ink stays inside its
-  radius, the path never widens the trail's footprint and never costs the text column a pixel. It is
-  13.855 against a floor radius of 14 — there is almost no margin left, so a bigger loop means a
-  wider gutter and a narrower measure.
-- **Measure the CURVE, not the control hull.** A cubic's control points bound it, and for the loop's
-  elliptical arcs they overestimate by 1.2px — enough to fail a figure that actually fits. The tests
-  sample the curve.
-- **The path's stroke colour is HARDCODED in the data URI and cannot be otherwise.** An SVG inside
-  a `url()` is a separate document: no `currentColor`, no custom properties. So it can drift from
-  `--trail` silently, and `test/trail.test.js` asserts it against tokens.css. The same goes for
-  `--trail-weight`.
-- **`.trail__end` must not carry padding.** `box-sizing: border-box` is global, so padding there is
-  absorbed into its own `min-height` and does nothing — while still reading as though it does. The
-  `bottom` offset on `.trail::before` added it once and stopped the path 32px short of the mark it
-  terminates at. The gap before the closing line belongs to `.closing`.
+- **The path is GENERATED, in `lib/trailPath.js`, from the measured positions of the waypoint discs.**
+  It was a tiled SVG background and that is repetition by definition — identical loops at even
+  intervals. Do not put it back in CSS: a tile cannot know where the discs are, cannot avoid repeating,
+  and has to fit the narrowest column the page ever has, which is what squashed the loops into ovals.
+- **`data-trail-stop` is the contract between the CSS layout and the generated curve.** Every disc
+  carries it and so does the summit mark; `TrailPath` finds them and threads the curve through their
+  centres. An attribute rather than a class, so restyling cannot silently detach the path.
+- **`useLayoutEffect`, not `useEffect`.** The first render draws an estimated path; a layout effect
+  replaces it with the measured one before the browser paints. With `useEffect` the reader sees the
+  estimate for a frame and watches it snap.
+- **CENTRIPETAL Catmull-Rom, never uniform.** The uniform form is parameterised by knot index and a
+  loop is six knots a few pixels apart between crests a hundred apart, so it overshoots into a cusp at
+  every loop. Centripetal (α=½) provably cannot cusp within a segment, which is what makes "no sharp
+  points" structural. `test/trail.test.js` asserts C1 at every junction.
+- **A loop needs 2r of width, so the usable radius on a side is HALF its reach.** Capping it at the
+  reach let the curve draw to x=65 in a 49-wide box, where an SVG clips it to a flat edge. The left
+  side has the page's own padding behind it and roughly twice the room of the right, which is why
+  `.trail__drawing` has a negative `left` and why the loops are weighted toward that side.
+- **Seed per span with a HASH, never `seed + span * stride`.** mulberry32 advances by a fixed constant
+  and hashes, so seeds a fixed stride apart give correlated first outputs — and every early draw here is
+  a decision. The symptom was every loop on a page landing on the same side within 3px of the same
+  size: the exact repetition this generator exists to prevent, reached by another route. Per-span
+  seeding at all is what keeps a FAQ row opening from redrawing the whole trail.
+- **The plants are section-closing ornaments in the TEXT column, not undergrowth in the gutter.** They
+  looked better in the gutter and the gutter is the only place a loop can be round; the two could not
+  share it. Moving them back means shrinking the loops.
 - **The reveal is opt-in.** The hidden state is scoped to `[data-reveal="on"]`, written only when
   `IntersectionObserver` exists and reduced motion is not requested, and `useReveal` decides
   visibility *during render* rather than in an effect. Invert this and one failed bundle ships a

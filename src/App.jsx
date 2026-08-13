@@ -24,6 +24,7 @@ import Hero from './components/Hero.jsx'
 import LangSwitch from './components/LangSwitch.jsx'
 import Schedule from './components/Schedule.jsx'
 import Story from './components/Story.jsx'
+import TrailPath from './components/TrailPath.jsx'
 import Venue from './components/Venue.jsx'
 import Waypoint from './components/Waypoint.jsx'
 
@@ -110,6 +111,12 @@ export default function App() {
         <Hero />
 
         <main className="trail" id="invitation" tabIndex={-1} data-reveal={reveal ? 'on' : undefined}>
+          {/* FIRST CHILD, and that is paint order rather than preference: both this and each
+              waypoint's disc are positioned with no z-index, so the discs punch their holes in the
+              curve only because they come later in the document. `stopCount` is every disc plus the
+              summit mark at the end. */}
+          <TrailPath stopCount={sections.length + 1} />
+
           {sections.map((section, index) => (
             <Waypoint
               key={section.id}
@@ -125,7 +132,7 @@ export default function App() {
           {/* The full stop. A last run of dashes and the two peaks again, so the path ends
               rather than stopping. */}
           <div className="trail__end is-visible" aria-hidden="true">
-            <span className="trail__summit">
+            <span className="trail__summit" data-trail-stop>
               <PeaksIcon />
             </span>
           </div>

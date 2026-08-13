@@ -35,16 +35,23 @@ export default function Waypoint({ id, index, icon, title, children }) {
       className={visible ? 'wp is-visible' : 'wp'}
       aria-labelledby={`${id}-head`}
     >
-      <span className="wp__node" aria-hidden="true">
+      {/* `data-trail-stop` is how TrailPath finds this disc to thread the curve through it. The
+          attribute rather than the class, so restyling cannot silently detach the path. */}
+      <span className="wp__node" data-trail-stop aria-hidden="true">
         <Glyph name={icon} />
       </span>
       <h2 className="wp__head" id={`${id}-head`}>
         {title}
       </h2>
       {children}
-      <span className="wp__flora" aria-hidden="true">
+      {/* A printer's fleuron closing the section, IN the text column.
+          These plants used to grow in the trail gutter beside the path, which is where they looked
+          best and also the only place a loop could find room to be round — at the old width every
+          loop on the right-hand side came out pinched. The gutter went to the path; the plants got a
+          better job, which is closing each section the way an ornament does. */}
+      <p className="wp__ornament" aria-hidden="true">
         <Plant />
-      </span>
+      </p>
     </section>
   )
 }

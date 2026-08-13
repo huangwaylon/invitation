@@ -6,12 +6,11 @@
      --trail-x          content-box left edge -> the path's MEAN line (and each disc's centre)
      --trail-node-size  diameter of a waypoint disc
      --trail-gutter     mean line -> left edge of the text
-     --trail-tile-*     the size of one full wave of the path
 
    so the path and the discs cannot drift apart, and the text column starts at
-   calc(var(--trail-x) + var(--trail-gutter)) everywhere without a single hardcoded px. The first
-   three are clamp()ed in tokens.css, which is what makes this work at 320px and at 1440px with no
-   media query. */
+   calc(var(--trail-x) + var(--trail-gutter)) everywhere without a single hardcoded px. All three are
+   clamp()ed in tokens.css, which is what makes this work at 320px and at 1440px with no media
+   query. */
 
 .page {
   /* The text column is --column-max; the trail lives to the left of it, so the page is
@@ -26,77 +25,31 @@
 }
 
 /* ---- The path ----------------------------------------------------------
-   ONE CONTINUOUS LINE FOR THE WHOLE TRAIL, on the container, rather than a segment per
-   waypoint. That is not a tidiness preference — it is what makes a curve possible at all. With a
-   background per waypoint, each section restarts the wave at its own top edge, so the path
-   arrives at a section boundary mid-swing and leaves it from the centre: a sideways jump at every
-   heading, and the waypoint disc sitting at that boundary is only tangent to it, so it does not
-   hide it. Drawn once on the container, the wave has no seams to hide.
+   DRAWN BY `components/TrailPath.jsx`, NOT BY THIS FILE. It measures where the waypoint discs
+   actually are and generates one continuous curve through all of them — see `lib/trailPath.js` for
+   why, at length. All this rule does is stake out the box it may draw in.
 
-   A TILED SVG, NOT A STRETCHED ONE. The image is one full wave in a 28x132 box, repeated with
-   `repeat-y`. A single SVG scaled to the trail's height would need `preserveAspectRatio: none`,
-   which stretches the dashes and the curve's amplitude along with it — so the same path would
-   read as a gentle ripple on a short page and a violent zigzag on a long one, and the dash rhythm
-   would never match the hero's rule. Tiling keeps every dash and every curve at its drawn size
-   whatever the page length.
+   THIS ELEMENT'S WIDTH IS THE ENTIRE REASON THE LOOPS CAN BE ROUND. It reaches back across the
+   page's own left padding, which is dead space no text may ever enter, and forward to just short of
+   the text column. At 320px that is about 64px to work in against the 30 the old tiled version had,
+   and since a loop is a circle offset from the mean line by its own radius — so it reaches 2r — that
+   difference is what took the biggest loop from a 14px oval to a 38px circle.
 
-   THE TILE IS SIX HALF-WAVES AND A LOOP. The loop is a closed curve attached to the path at a
-   single point, where it crosses itself — which is why it adds no height at all: the path arrives at
-   the mean line, goes round once, and carries on from exactly where it left. It is entered and left
-   on the same tangent, which is simply what a loop does, and that is what lets it be dropped into a
-   wave without putting a corner there.
-
-   IT IS AN ELLIPSE, ELONGATED ALONG THE PATH, AND THAT IS A BUDGET DECISION. A circle here has to
-   be small: the loop hangs off the diagonal, so its width and its height grow together, and at a
-   radius that keeps it inside a waypoint disc it came out 14px across and read as a wobble rather
-   than a loop. Stretching it along the path direction instead — 13.2 by 6 in a frame rotated to the
-   tangent — makes it 17.7 wide by 23 tall for the same horizontal cost, because VERTICAL SPACE ON
-   THIS PAGE IS FREE. The furthest it reaches from the mean line is 13.855, against the 14 that the
-   smallest waypoint disc's radius allows; there is a test for that margin, and it is the reason the
-   loop cannot simply be scaled up.
-
-   ONE LOOP PER 396px IS THE WHOLE REASON THE TILE IS THAT TALL. A loop every 132 would be a
-   pattern; at 396 a phone screen shows one, occasionally two, so the repeat is invisible and it
-   reads as a route somebody drew rather than as wallpaper. It also puts roughly one loop per
-   waypoint, which is why they look placed.
-
-   THE DASHARRAY IS NOT A ROUND NUMBER, AND IT CANNOT BE. Every tile restarts its dash pattern at
-   phase zero, so the arc length per tile must be an exact whole multiple of the dash period or the
-   dashes step sideways at every tile boundary. This figure is 476.110017 long, so the period is
-   that over 52 = 9.155962, split as a 3.1 dash and a 6.05596 gap. `test/trail.test.js` re-derives
-   all of it from this file — including that the path genuinely self-intersects, so a future edit
-   cannot quietly flatten the loop back into a wave.
-
-   THE COLOUR IS HARDCODED, which is the one real cost of doing this as a background image: an SVG
-   in a `url()` is a separate document and cannot see `currentColor` or a custom property. The
-   alternative was an inline <svg> per waypoint with its own <pattern> and a generated id, which
-   buys `var(--trail)` at the price of ten extra DOM subtrees. So `%23a68f70` must equal --trail,
-   and `test/trail.test.js` asserts exactly that against tokens.css. */
-.trail::before {
-  content: "";
+   `overflow-x: hidden` on `body` is what makes the negative `left` safe. */
+.trail__drawing {
   position: absolute;
-  /* Starts at the FIRST disc's centre and ends at the SUMMIT MARK's, so the path is bounded by a
-     mark at each end rather than fading out into the page.
-
-     BOTH OFFSETS ARE HALF A DISC AND NOTHING MORE, and getting the bottom one wrong is easy: an
-     earlier version added --space-7 to it, reasoning that `.trail__end` carries that much padding
-     beneath the mark. It does not, in effect — `box-sizing: border-box` is set globally in
-     base.css, so that padding sits INSIDE the element's min-height rather than below it, and
-     adding it here stopped the path a clear 32px short of the mark it is supposed to reach. The
-     space before the closing line now belongs to `.closing` instead, where it cannot be
-     double-counted. */
+  /* Top and bottom are each half a disc, so the curve begins at the first disc's centre and ends at
+     the summit mark's — bounded by a mark at each end rather than fading out into the page. Do not
+     add the padding beneath `.trail__end` to the bottom figure: `box-sizing: border-box` puts that
+     padding inside its own min-height, and adding it here once stopped the path 32px short. */
   top: calc(var(--trail-node-size) / 2);
   bottom: calc(var(--trail-node-size) / 2);
-  /* Centred on the mean line, so the wave swings symmetrically about the discs. */
-  left: calc(var(--trail-x) - var(--trail-tile-w) / 2);
-  width: var(--trail-tile-w);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='396' viewBox='0 0 30 396'%3E%3Cpath d='M15 0C26 16.5 26 49.5 15 66C4 82.5 4 115.5 15 132C26 148.5 26 181.5 15 198C10.956 204.066 9.913 210.473 12.67 212.311C15.427 214.149 20.941 210.722 24.985 204.656C29.028 198.591 30.072 192.183 27.314 190.345C24.557 188.507 19.044 191.934 15 198C4 214.5 4 247.5 15 264C26 280.5 26 313.5 15 330C4 346.5 4 379.5 15 396' fill='none' stroke='%23a68f70' stroke-width='1.5' stroke-linecap='round' stroke-dasharray='3.1 6.05596'/%3E%3C/svg%3E");
-  background-repeat: repeat-y;
-  /* From the top, so the wave always begins at the mean line directly beneath the first disc.
-     Anchoring at the bottom instead would make the whole path shift as the page's length changed
-     — with a photograph added, or in a language whose paragraphs wrap differently. */
-  background-position: top center;
-  background-size: var(--trail-tile-w) var(--trail-tile-h);
+  left: calc(-1 * var(--space-4));
+  width: calc(var(--space-4) + var(--trail-x) + var(--trail-gutter) - 6px);
+  /* The stroke is `currentColor`, so this is where the path's colour comes from. An SVG inside a
+     `url()` background could not do that, and the old one had #a68f70 frozen into it with a test to
+     stop it drifting from this token. */
+  color: var(--trail);
 }
 
 /* ---- A waypoint --------------------------------------------------------
@@ -163,56 +116,35 @@
   color: var(--ink);
 }
 
-/* ---- The flora ---------------------------------------------------------
-   Grows in the strip between the path's outermost swing and the text — which is why
-   --trail-gutter has a 30px floor rather than the 22 it had when the path was straight. To the
-   LEFT of the path there is nothing to grow in: at 320px the mean line sits 15px from the content
-   edge and the page padding is 16, so a plant there would hang off the screen and add a
-   horizontal scrollbar.
+/* ---- The section ornament ----------------------------------------------
+   A plant closing each section, centred in the TEXT column.
 
-   `left` clears the amplitude (11) plus a hair, so a frond never has a dashed line running
-   through it — the two crossing reads as clutter rather than as decoration.
+   These used to grow in the trail gutter beside the path, and that is where they looked best — but
+   the gutter is also the only place a loop can find room to be round, and the two could not share
+   it: at the width that left space for a frond, every right-hand loop came out pinched. So the
+   plants moved to the one place on the page with room to spare, and became a printer's fleuron
+   instead of undergrowth.
 
-   aria-hidden and painted in --flora, the faintest colour in the palette. See the note at the
-   foot of icons.jsx: if any of these ever labels anything, it has to change weight and colour and
-   gain a row in check-contrast.js. */
-.wp__flora {
-  position: absolute;
-  bottom: calc(var(--space-trail) * 0.28);
-  /* 14, not 12: the loop reaches further out than the waves do (12.8 from the mean line against
-     the wave's 8.25), so this has to clear the loop rather than the wave. */
-  left: calc(var(--trail-x) + 14px);
+   aria-hidden and painted in --flora, the faintest colour in the palette. See the note at the foot
+   of icons.jsx: if any of these ever labels anything, it has to change weight and colour and gain a
+   row in check-contrast.js. */
+.wp__ornament {
+  margin-top: var(--space-6);
   color: var(--flora);
-  font-size: 1.05rem;
-  /* Behind the path and the text both. Nothing currently overlaps, but if the type ever grows
-     into this strip the words must win. */
-  z-index: -1;
+  font-size: 1.3rem;
+  text-align: center;
 }
 
-/* Height and size both vary with position, which is the difference between plants growing along a
-   path and a column of identical stamps. The rotations are mirrored against the discs above them
-   so a plant and its waypoint never lean the same way — that is what would make the whole column
-   look tilted rather than hand-placed. */
-.wp:nth-child(odd) .wp__flora > svg {
+/* Alternating, so a column of them does not read as a repeated stamp — the same reasoning as the
+   waypoint glyphs above, and the same few degrees. */
+.wp:nth-child(odd) .wp__ornament > svg {
+  transform: rotate(-5deg);
+  margin-inline: auto;
+}
+
+.wp:nth-child(even) .wp__ornament > svg {
   transform: rotate(6deg);
-}
-
-.wp:nth-child(even) .wp__flora > svg {
-  transform: rotate(-7deg) translateX(1px);
-}
-
-.wp:nth-child(even) .wp__flora {
-  bottom: calc(var(--space-trail) * 0.42);
-}
-
-.wp:nth-child(3n) .wp__flora {
-  font-size: 1.25rem;
-  bottom: calc(var(--space-trail) * 0.4);
-}
-
-.wp:nth-child(4n) .wp__flora {
-  font-size: 0.95rem;
-  bottom: calc(var(--space-trail) * 0.2);
+  margin-inline: auto;
 }
 
 /* ---- The end of the path ----------------------------------------------

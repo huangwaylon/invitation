@@ -83,13 +83,12 @@
   /* The stroke weight of everything hand-drawn: the path, the waypoint rings, the card and
      switch borders. Shared so the whole page looks ruled by one pen.
 
-     THERE IS NO --trail-dash OR --trail-gap ANY MORE, and they are not missing by accident. The
-     dash rhythm now lives inside the two SVG data URIs (the tiled path in trail.css and the hero's
-     rule in app.css) and CANNOT be a custom property, because an SVG in a `url()` is a separate
-     document that cannot see one. It is also no longer a free choice: the spine's period is fixed
-     at arc-length / 15 so its tiles seam cleanly, and the hero's at arc-length / 8.34 so its
-     pattern ends on a dash. Two derived, unequal numbers — a single token would have been a lie
-     about them being the same value. `test/trail.test.js` is what keeps them honest. */
+     THERE IS NO --trail-DASH OR --trail-GAP, and they are not missing by accident. The two dashed
+     things on this page set their own rhythm and cannot read a custom property to do it: the trail is
+     an inline SVG whose attributes React writes, and the hero's rule is an SVG inside a `url()`,
+     which is a separate document. They are near-identical — 3.4/6 against 3.07/5.95 — but not equal,
+     because the hero's is solved so its pattern ends on a dash rather than mid-gap, and one token
+     would have been a lie about them being the same value. */
   --trail-weight: 1.5px;
 
   /* ---- Over the hero photograph ----------------------------------------
@@ -210,17 +209,24 @@
      leaves 259px of text column. That is the tightest case the design has to hold, and
      it is why --trail-x is not larger. */
   --tap-target: 44px;
-  /* Fluid rather than fixed, and this is the whole reason the layout survives a 320px
-     iPhone SE. At that width the page is 288px inside its padding, and a fixed 18px +
-     34px trail would leave a 236px text column — about 28 Latin characters a line, which
-     is a poem, not a paragraph. Clamped, the same tokens give 259px there and a
-     comfortable 34px gutter on a monitor, with no media query anywhere. */
-  --trail-x: clamp(15px, 4.5vw, 19px);
+  /**
+   * Fluid rather than fixed, and this is the whole reason the layout survives a 320px iPhone SE.
+   *
+   * --trail-x MOVED RIGHT (from 15) AND --trail-gutter SHRANK TO MATCH, which is a trade that costs
+   * the text column almost nothing and buys the path everything. The disc sits at --trail-x, and the
+   * room a loop has is everything to the LEFT of it: the page's own 16px padding plus --trail-x
+   * itself. A loop is a circle offset from the mean line by its own radius and reaching a further
+   * radius past that, so it needs 2r of width — which means every pixel --trail-x moves right is
+   * half a pixel of loop radius.
+   *
+   * At 320px that is 16 + 24 = 40px of room, so the biggest loop is 40px across. Before this it was
+   * 31px of room and the loops came out as 14px ovals. The text still starts at
+   * --trail-x + --trail-gutter, and 24 + 30 is 7px more than the 15 + 32 it replaced — the whole
+   * price of the change, paid once, at the narrowest width the design supports.
+   */
+  --trail-x: clamp(24px, 7vw, 30px);
   --trail-node-size: clamp(28px, 8vw, 34px);
-  /* The floor is set by the CURVE, not by taste. The figure reaches 12.8px from the mean line at
-     the loop, and the flora grows in the strip past that — so the text has to start clear of the
-     loop plus a plant. It was 22 while the path was straight and 30 before the loop was added. */
-  --trail-gutter: clamp(32px, 8vw, 40px);
+  --trail-gutter: clamp(30px, 8vw, 38px);
 
   /* One full wave of the path, as drawn in the tiled SVG in trail.css. These two are the image's
      own intrinsic size and MUST match the `width`/`height` in that data URI — the CSS sets
