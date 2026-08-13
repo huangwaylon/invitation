@@ -101,6 +101,20 @@ comment next to the code it governs; read that first.
   navigation and a `blob:` URL would need the CSP widened. If you find yourself widening it,
   re-read `src/lib/ics.js` first.
 
+## Gotchas
+
+- **NEVER RUN A BARE `npm install`.** This repo is developed on a machine where
+  `NPM_CONFIG_REGISTRY` points at an internal Apple mirror, and a bare install bakes that host
+  into all 149 `resolved` URLs in `package-lock.json`. It works perfectly locally and fails on a
+  GitHub runner, which cannot reach those hosts — and npm reports it uselessly. A repo `.npmrc`
+  cannot prevent it, because npm ranks env vars higher. Use:
+
+      npm install --registry=https://registry.npmjs.org
+
+  `test/lockfile.test.js` fails the build on a non-public `resolved` URL. It is ported from the
+  sibling app, which learned this the same way. The first deploy of this repo failed on exactly
+  this.
+
 ## The sibling app
 
 `../wedding` is the planning board. This repo copies its neutrals, its 24×24 / 1.75-stroke icon

@@ -85,7 +85,9 @@ before the content is real.
 ## Running it
 
 ```sh
-npm install
+# The flag is not optional on a machine with NPM_CONFIG_REGISTRY set to an internal mirror:
+# a bare install bakes that unreachable host into the lockfile and CI dies. See CLAUDE.md.
+npm install --registry=https://registry.npmjs.org
 npm run dev             # http://localhost:5173/invitation/
 npm test                # 125 tests, no jsdom
 npm run check:content   # what is still placeholder in content.js (not enforced in CI)
