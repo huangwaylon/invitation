@@ -7,10 +7,11 @@ It is deliberately a sibling of the [`wedding`](../wedding) planning board and s
 neutrals, its icon style, its accessibility floors and its deploy shape. Where it departs from
 that app it says so, with the reason, next to the code that departs.
 
-**It is live before it is finished, on purpose:** <https://huangwaylon.github.io/invitation/>.
-`src/content.js` still holds placeholder details I invented so the page would render, and while
-it does, the page carries a yellow DRAFT banner saying so. That banner is the only thing standing
-between a placeholder address and a guest — see [Before you send it](#before-you-send-it).
+**It is live before it is finished:** <https://huangwaylon.github.io/invitation/>.
+`src/content.js` still holds twenty placeholder fields, and **the DRAFT banner that used to say so is
+now off** — so everything on the page reads as fact, including five placeholder names in the guest list
+and three invented story entries. `DRAFT = true` in content.js puts the warning back in one line. See
+[Before you send it](#before-you-send-it).
 
 The URL is `noindex`, so it will not appear in search results for anybody's name or for the
 venue. Anyone with the link opens it normally.
@@ -61,11 +62,9 @@ imports it to validate them.
 
 ## Before you send it
 
-`npm run check:content` prints exactly what is outstanding, with line numbers. **It is not
-enforced in CI** — that was a deliberate choice so the site could go up early and be looked at on
-a real phone. What that costs is that nothing mechanical stops a half-finished invitation from
-being shared, so the yellow DRAFT banner on the page is doing that job alone. Do not remove it
-before the content is real.
+`npm run check:content` prints exactly what is outstanding, with line numbers. **It is not enforced in
+CI, and the DRAFT banner is off**, so nothing now warns a reader that anything here is provisional —
+both by decision. That leaves the list below as the only record of what is still invented.
 
 1. **Replace every value marked `// DRAFT` in `src/content.js`, and delete the marker.** The markers
    *are* the checklist — there is no second list to keep in sync. Twenty of them: the street address

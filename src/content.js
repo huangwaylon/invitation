@@ -25,7 +25,20 @@
  * ---------------------------------------------------------------------------
  */
 
-export const DRAFT = true // DRAFT — set false once every field below is real.
+/**
+ * Whether the page shows its yellow "this is a draft" banner.
+ *
+ * IT IS OFF, AND THE FIELDS BELOW ARE NOT ALL REAL YET — that combination is a deliberate choice
+ * rather than the flag's original meaning, so it is worth being exact about what it now costs. With
+ * the banner up, a guest opening the page was told not to trust the details. With it down, everything
+ * here reads as fact, including the twenty fields still marked `// DRAFT`: five placeholder names in
+ * GUESTS, three invented STORY entries, an address with no street number, and travel notes written
+ * from general knowledge of the route rather than from anybody's arrangements.
+ *
+ * `npm run check:content` still lists every one of them. Flip this back to `true` for one line's worth
+ * of warning if the link is going to be shared before they are filled in.
+ */
+export const DRAFT = false
 
 /**
  * A translated string. Three arguments, always in this order, and NONE of them

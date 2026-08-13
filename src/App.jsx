@@ -32,10 +32,9 @@ import Waypoint from './components/Waypoint.jsx'
  * Shown only while content.js still has `DRAFT = true`, and deliberately ugly — the moment
  * this looks designed is the moment somebody ships it.
  *
- * It is the SECOND line of defence, not the first: `npm run check:content` fails while the
- * flag is set and the deploy workflow runs that check before it builds, so a draft should
- * never reach a guest at all. This is what catches the case where somebody bypasses the
- * workflow and uploads a dist/ by hand.
+ * CURRENTLY OFF — `DRAFT` is `false` in content.js while placeholder fields remain, by decision. It
+ * is kept rather than deleted because it is one line to switch back on, and it is the only warning
+ * this page has: `check:content` reports but does not gate, and the deploy workflow does not run it.
  *
  * Not translated, on purpose. It addresses whoever is editing the file, not a guest.
  */

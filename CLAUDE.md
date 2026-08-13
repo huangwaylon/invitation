@@ -22,11 +22,11 @@ comment next to the code it governs; read that first.
   "today" in, so that everybody everywhere is counting down to the same morning.
 - **Deleting a `// DRAFT` marker is a claim that the value beside it is real.** `check:content` has
   no other way to know.
-- **The DRAFT banner is the only thing keeping a placeholder away from a guest.** `check:content`
-  exists but is deliberately NOT run in CI — the site is published before its details are final so
-  it can be seen on a real phone — so the banner `App.jsx` renders while `DRAFT = true` is the
-  entire remaining defence. Removing it while the content is still placeholder means a guest can be
-  sent a confident, plausible, wrong address.
+- **NOTHING ON THE PAGE NOW WARNS A READER THAT ANY OF IT IS PROVISIONAL.** `check:content` reports
+  but is deliberately not run in CI, and `DRAFT` was set to `false` while twenty fields were still
+  marked — both by explicit decision. So a guest reads "Grandpa 1" and three invented story entries as
+  fact. The mechanism is intact and one line reverts it; do not assume a future reader of this repo
+  knows the page is a draft, because the page no longer says so.
 - **`index.html`'s `noindex` meta tag is the whole reason this page is not searchable.**
   `public/robots.txt` is inert on a project page — robots.txt is resolved per origin at
   `/robots.txt` and this site serves from `/invitation/`. Do not delete the meta tag believing the
