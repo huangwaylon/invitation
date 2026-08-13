@@ -49,14 +49,37 @@ comment next to the code it governs; read that first.
 
 ## The trail
 
-- **All trail geometry derives from `--trail-x`, `--trail-node-size` and `--trail-gutter`.** Put a
-  literal pixel value in `trail.css` and the spine and the discs drift apart at some width you
-  are not looking at. All three are `clamp()`ed, which is what makes the layout hold at 320px
-  with no media query.
-- **The spine is a `repeating-linear-gradient`, not `border-left: dashed`.** A dashed border
-  derives its dash length from the border width and stretches it to fit the box, so two segments
-  of different heights draw visibly different dashes — and this spine is one segment per
-  waypoint. The hero's rule shares the same gradient so the two look like one drawing.
+- **All trail geometry derives from `--trail-x`, `--trail-node-size`, `--trail-gutter` and
+  `--trail-tile-*`.** Put a literal pixel value in `trail.css` and the path and the discs drift
+  apart at some width you are not looking at. The first three are `clamp()`ed, which is what makes
+  the layout hold at 320px with no media query.
+- **The path is ONE background on `.trail`, never one per waypoint.** A background per section
+  restarts the wave at each section's top edge, so the curve arrives at a heading mid-swing and
+  leaves it from the centre — a sideways jump at every waypoint, and the disc sitting there is only
+  tangent to it, so it does not hide it. This is the constraint that made the curve possible at
+  all; the straight version could get away with per-segment.
+- **The path is a TILED SVG, never a stretched one.** One full wave at its drawn size, repeated
+  with `repeat-y`. Scaling a single SVG to the trail's height needs `preserveAspectRatio: none`,
+  which stretches the dashes and the amplitude with it — the same path would be a ripple on a short
+  page and a zigzag on a long one.
+- **THE DASH PERIOD IS DERIVED, NOT CHOSEN: the tile's arc length must be a whole multiple of it.**
+  Every tile restarts its dash pattern at phase zero, so anything else steps the dashes sideways at
+  each of the ~8 tile boundaries down the page. The spine is 137.880883 / 15; the hero's rule is
+  not tiled and instead solves for ending on a dash rather than mid-gap. `test/trail.test.js`
+  re-derives both from the stylesheets — including the tangent continuity at the tile seam, which a
+  symmetric-looking path can fail while looking fine in isolation.
+- **The wave's amplitude must stay under `--trail-node-size / 2`.** That is what makes a curving
+  path free: the disc is centred on the mean line, so as long as the swing stays inside its radius,
+  the path never widens the trail's footprint and never costs the text column a pixel. It is 11
+  against a floor radius of 14, and there is a test.
+- **The path's stroke colour is HARDCODED in the data URI and cannot be otherwise.** An SVG inside
+  a `url()` is a separate document: no `currentColor`, no custom properties. So it can drift from
+  `--trail` silently, and `test/trail.test.js` asserts it against tokens.css. The same goes for
+  `--trail-weight`.
+- **`.trail__end` must not carry padding.** `box-sizing: border-box` is global, so padding there is
+  absorbed into its own `min-height` and does nothing — while still reading as though it does. The
+  `bottom` offset on `.trail::before` added it once and stopped the path 32px short of the mark it
+  terminates at. The gap before the closing line belongs to `.closing`.
 - **The reveal is opt-in.** The hidden state is scoped to `[data-reveal="on"]`, written only when
   `IntersectionObserver` exists and reduced motion is not requested, and `useReveal` decides
   visibility *during render* rather than in an effect. Invert this and one failed bundle ships a

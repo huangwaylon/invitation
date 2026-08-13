@@ -80,9 +80,9 @@ describe('buildIcs', () => {
   })
 
   it('starts and ends at the hours content.js gives, converted from the venue zone', () => {
-    // 11:00 and 19:00 Asia/Tokyo.
-    expect(field(text, 'DTSTART')).toBe('20270515T020000Z')
-    expect(field(text, 'DTEND')).toBe('20270515T100000Z')
+    // 11:00 and 18:00 Asia/Tokyo, which is UTC+9 all year with no DST.
+    expect(field(text, 'DTSTART')).toBe('20271008T020000Z')
+    expect(field(text, 'DTEND')).toBe('20271008T090000Z')
   })
 
   it('is byte-identical between builds, so a deploy does not churn the file', () => {
@@ -95,10 +95,17 @@ describe('buildIcs', () => {
     expect(field(buildIcs('ja'), 'UID')).not.toBe(field(buildIcs('en'), 'UID'))
   })
 
+  /**
+   * The venue name is also the sharpest available test that the Chinese column is not a copy of
+   * the Japanese one: 偕楽園 uses the Japanese shinjitai 楽, whose Traditional form is 樂. If
+   * somebody ever "tidies" content.js by duplicating the Japanese into the Chinese slot, this is
+   * what catches it.
+   */
   it('localises the summary, because a calendar client has no locale context of its own', () => {
-    expect(field(buildIcs('ja'), 'SUMMARY')).toContain('白馬')
-    expect(field(buildIcs('zh-Hant'), 'SUMMARY')).toContain('白馬')
-    expect(field(buildIcs('en'), 'SUMMARY')).toContain('Hakuba')
+    expect(field(buildIcs('ja'), 'SUMMARY')).toContain('偕楽園')
+    expect(field(buildIcs('zh-Hant'), 'SUMMARY')).toContain('偕樂園')
+    expect(field(buildIcs('zh-Hant'), 'SUMMARY')).not.toContain('偕楽園')
+    expect(field(buildIcs('en'), 'SUMMARY')).toContain('Kairakuen')
   })
 
   it('escapes the characters iCalendar reserves, and does not double-escape them', () => {
@@ -130,7 +137,8 @@ describe('buildIcs', () => {
   })
 
   it('unfolds back to the strings that went in', () => {
-    expect(field(buildIcs('ja'), 'LOCATION')).toContain('長野県北安曇郡白馬村北城1234')
+    expect(field(buildIcs('ja'), 'LOCATION')).toContain('茨城県水戸市')
+    expect(field(buildIcs('ja'), 'LOCATION')).toContain('迎賓館 偕楽園 別邸')
   })
 })
 

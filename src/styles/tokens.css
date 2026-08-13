@@ -80,12 +80,17 @@
   --trail-node: #9d8768;
   --flora: #c2b49c;
 
-  /* The dashes themselves. One place, because the vertical spine, the horizontal rules
-     and the hero's underline must share a rhythm or the page looks like two drawings.
-     4px on, 5px off, at 1.5px weight. */
+  /* The stroke weight of everything hand-drawn: the path, the waypoint rings, the card and
+     switch borders. Shared so the whole page looks ruled by one pen.
+
+     THERE IS NO --trail-dash OR --trail-gap ANY MORE, and they are not missing by accident. The
+     dash rhythm now lives inside the two SVG data URIs (the tiled path in trail.css and the hero's
+     rule in app.css) and CANNOT be a custom property, because an SVG in a `url()` is a separate
+     document that cannot see one. It is also no longer a free choice: the spine's period is fixed
+     at arc-length / 15 so its tiles seam cleanly, and the hero's at arc-length / 8.34 so its
+     pattern ends on a dash. Two derived, unequal numbers — a single token would have been a lie
+     about them being the same value. `test/trail.test.js` is what keeps them honest. */
   --trail-weight: 1.5px;
-  --trail-dash: 4px;
-  --trail-gap: 5px;
 
   /* ---- Over the hero photograph ----------------------------------------
      The one surface whose background is UNKNOWN, so ink here cannot be measured against
@@ -212,7 +217,20 @@
      comfortable 34px gutter on a monitor, with no media query anywhere. */
   --trail-x: clamp(15px, 4.5vw, 19px);
   --trail-node-size: clamp(28px, 8vw, 34px);
-  --trail-gutter: clamp(22px, 7vw, 32px);
+  /* The 30px floor is set by the CURVE, not by taste. The path swings 11px either side of the
+     mean line, and the flora grows in the strip past that swing — so the text has to start clear
+     of amplitude + plant. It was 22 while the path was straight. */
+  --trail-gutter: clamp(30px, 8vw, 38px);
+
+  /* One full wave of the path, as drawn in the tiled SVG in trail.css. These two are the image's
+     own intrinsic size and MUST match the `width`/`height` in that data URI — the CSS sets
+     `background-size` from them, and a mismatch scales the curve and the dashes.
+
+     The amplitude (11) is not a token because only the SVG's control points can express it; what
+     matters about it is recorded where it is used: it stays inside --trail-node-size / 2, so the
+     wave never escapes a waypoint disc's footprint and a curving path costs the text no width. */
+  --trail-tile-w: 28px;
+  --trail-tile-h: 132px;
 }
 
 /* ---- Per-locale fonts --------------------------------------------------

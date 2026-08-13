@@ -17,9 +17,10 @@ venue. Anyone with the link opens it normally.
 
 ## The idea
 
-The invitation is a **trail**. One dashed path runs the whole length of the page and every
-section is a waypoint on it — a disc with a line-art glyph, a heading, and as few words as the
-thing needs. Ten waypoints from the summit at the top to the closing note at the bottom:
+The invitation is a **trail**. One dashed path *meanders* down the whole length of the page — a
+children's-map wiggle rather than a ruled line — and every section is a waypoint on it: a disc with
+a line-art glyph, a heading, and as few words as the thing needs. Ten waypoints from the seal at
+the top to the summit mark at the bottom:
 
 | | |
 | --- | --- |
@@ -103,6 +104,17 @@ px wide. They are self-contained, open straight from disk, and are how this desi
 rendered inside an iframe, which has a viewport of its own and so resolves `vw` units correctly.
 
 ## Decisions worth knowing about
+
+**The meander is a tiled SVG, and its dash period is derived rather than chosen.** The path is one
+full wave in a 28x132 box, repeated with `repeat-y` — tiling is what keeps every curve and every
+dash at its drawn size whether the page is short or long, where a single stretched SVG would turn
+the same path into a ripple or a zigzag depending on how much text there is. The catch is that each
+tile restarts its dash pattern at phase zero, so the wave's arc length has to be an exact whole
+multiple of the dash period or the dashes step sideways at all eight tile boundaries. It is
+137.880883 long, so the period is that over 15. [`test/trail.test.js`](test/trail.test.js)
+recomputes it from the stylesheet, along with the tangent continuity at the seam and the fact that
+the amplitude stays inside a waypoint disc's radius — which is what makes the curve cost the text
+column nothing.
 
 **There is no RSVP, and that is a decision.** At fifteen guests the couple already knows who is
 coming; a form would be ceremony for its own sake, and on a static page it would mean either a
