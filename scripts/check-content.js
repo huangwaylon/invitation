@@ -1,19 +1,19 @@
 /**
- * The gate between a draft and something fifteen people receive.
+ * What is still a placeholder in src/content.js.
  *
  *   npm run check:content
  *
- * The deploy workflow runs this BEFORE `vite build`, so a failure here means nothing is
- * published. That is the entire point: the site ships with a plausible invented date, a
- * plausible invented venue and a plausible invented address, and a plausible wrong address
- * is far more damaging than an obviously missing one. Nobody gets to publish until every
- * field has been looked at.
+ * IT IS NOT A DEPLOY GATE. It was, and the workflow step that ran it was removed deliberately so
+ * the site could go up before its details were final. So this script reports; it does not prevent.
+ * The thing that actually warns a reader is the DRAFT banner the page renders while
+ * `DRAFT = true`, which is why removing that banner early is called out as an invariant in
+ * CLAUDE.md.
  *
- * THE CHECKLIST IS THE `// DRAFT` COMMENTS THEMSELVES. Each one marks a value that was
- * invented, and this script fails while any of them is still in the file — so the workflow
- * is: replace the value, delete the comment, and when the last one is gone set
- * `DRAFT = false`. There is no separate list to keep in sync, because a separate list would
- * go stale the first time somebody added a field.
+ * THE CHECKLIST IS THE `// DRAFT` COMMENTS THEMSELVES. Each one marks a value that was invented or
+ * left out, and this script reports while any of them is still in the file — so the workflow is:
+ * replace the value, delete the comment, and when the last one is gone set `DRAFT = false`. There
+ * is no separate list to keep in sync, because a separate list would go stale the first time
+ * somebody added a field.
  *
  * Structural checks live here too, but the ones needing JSX — that every `icon:` name
  * resolves to a real glyph — are in test/content.test.js, which can import through Vite.
@@ -169,7 +169,10 @@ for (const [index, photo] of PHOTOS.entries()) {
 if (problems.length) {
   console.error(`\ncheck:content — ${problems.length} problem${problems.length === 1 ? '' : 's'}\n`)
   for (const problem of problems) console.error(`  ✗ ${problem}`)
-  console.error('\nNothing will be deployed until these are resolved.\n')
+  // NOT "nothing will be deployed until these are resolved" — that was true when this script
+  // gated the workflow and is a lie now that it does not. The site publishes regardless; what
+  // stands between a placeholder and a guest is the DRAFT banner on the page.
+  console.error('\nThe site still deploys. The DRAFT banner on the page is what warns a reader.\n')
   process.exitCode = 1
 } else {
   console.log('\ncheck:content — every field is filled in and structurally sound.\n')
