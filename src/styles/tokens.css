@@ -1,0 +1,293 @@
+/* tokens.css — the single source of truth for colour, type, space and motion.
+
+   Every ratio in this file was measured by scripts/check-contrast.js. Run `npm run
+   contrast` after changing any colour; it fails loudly rather than leaving something
+   illegible.
+
+   Deliberately a near-copy of the sibling planning app's neutrals, so the two sites
+   read as one pair. What differs is stated where it differs, with the reason. */
+
+:root {
+  color-scheme: light;
+
+  /* ---- Colour: warm neutrals -------------------------------------------
+     Warm, unbleached, paper-like — an invitation is a piece of paper, and a cool grey
+     screen reads as an app. The temperature step from --bg to --surface IS the
+     elevation, which is why almost nothing here needs a shadow. */
+  --bg: #faf7f4;
+  --surface: #ffffff;
+  --sunken: #f3ece7;
+
+  --line: #e9e1d8;
+  /* Darker than --line, and only for form controls and anything whose BOUNDARY has to
+     be findable. WCAG 1.4.11 wants 3:1 for the boundary that identifies a control and a
+     --line border on white is nowhere near. Do not tidy this to --line. */
+  --line-input: #9a9186;
+
+  /* ink      16.27 / 17.36 / 14.85  against bg / surface / sunken
+     ink-2     7.45 /  7.95 /  6.80
+     ink-3     4.96 /  5.30 /  4.53  <- the lightest that still passes AA at 13px
+     ink-4     3.50 /  3.73 /  3.19  <- never carries information; 3:1 graphic floor
+
+     Kanji and Han at low contrast are unreadable in a way Latin is not, and two of this
+     page's three languages are CJK. Do not lighten any of these. */
+  --ink: #1c1a17;
+  --ink-2: #56504a;
+  --ink-3: #736a61;
+  --ink-4: #8c8377;
+
+  --scrim: rgba(28, 26, 23, 0.34);
+
+  /* ---- Accent: sage ----------------------------------------------------
+     ONE hue carries meaning, and it is a green, because everything this couple likes is
+     outdoors. Taken from the sibling app's `sage` preset unchanged so the two sites
+     share a colour rather than nearly sharing one.
+
+     white on accent 7.93 · accent on bg 7.43 · accent on surface 7.93
+     accent on accent-wash 6.83 · as a focus ring 6.78 at worst
+
+     NOTE the sibling defaults to indigo and explains why: it needed a hue separable
+     from green and red at 8px, because colour there encodes STATE. Nothing on this page
+     has a state, so that constraint is gone and the warmer choice wins. */
+  --accent: #385844;
+  --accent-hover: #2d4737;
+  --accent-text: #ffffff;
+  --accent-wash: #e8f0ea;
+  --accent-ring: color-mix(in srgb, var(--accent) 24%, transparent);
+
+  /* ---- Ochre -----------------------------------------------------------
+     The second hue, and the last. Small details only: the sun, a lantern, the year on a
+     story row. Held to full AA anyway (7.29 on bg, 7.78 on surface) so it can be used
+     for a word and not only a shape — a decorative-only colour that later gets text put
+     on it is how a palette rots. */
+  --ochre: #6b4d17;
+  --ochre-wash: #f4eee0;
+
+  /* ---- The trail -------------------------------------------------------
+     The dashed path down the page, the rings around each waypoint, and the flora
+     scattered between them. ALL THREE ARE DECORATION: every one is aria-hidden, and a
+     reader who cannot see any of it still gets the same headings in the same order. So
+     they sit below 3:1 legitimately — but they are not allowed to be invisible, because
+     the path and the rings are what hold this layout's shape together.
+
+     trail       2.90 on bg / 3.10 on surface
+     trail-node  3.23 on bg / 3.44 on surface  <- the ring; the crispest of the three
+     flora       1.91 on bg / 2.04 on surface  <- a whisper, and meant to be
+
+     The flora being the faintest is the whole hierarchy: path, then waypoint, then the
+     ferns you only notice on the second read. */
+  --trail: #a68f70;
+  --trail-node: #9d8768;
+  --flora: #c2b49c;
+
+  /* The dashes themselves. One place, because the vertical spine, the horizontal rules
+     and the hero's underline must share a rhythm or the page looks like two drawings.
+     4px on, 5px off, at 1.5px weight. */
+  --trail-weight: 1.5px;
+  --trail-dash: 4px;
+  --trail-gap: 5px;
+
+  /* ---- Over the hero photograph ----------------------------------------
+     The one surface whose background is UNKNOWN, so ink here cannot be measured against
+     a token — it is measured against the worst case the scrim allows. --photo-scrim
+     ends at 0.72 alpha over a #181410 base, and white on that composite is 7.29:1 even
+     over a blown-out white sky.
+
+     Lightening the end stop is what would break it: at 0.50 the same worst case
+     measures 3.44:1 and fails AA. check-contrast.js prints that row every run so the
+     cost is visible before anybody tries it. */
+  --photo-ink: #ffffff;
+  --photo-ink-2: rgba(255, 255, 255, 0.92);
+  --photo-scrim: linear-gradient(
+    to bottom,
+    rgba(24, 20, 16, 0) 26%,
+    rgba(24, 20, 16, 0.34) 58%,
+    rgba(24, 20, 16, 0.72) 100%
+  );
+  --photo-shadow: 0 1px 12px rgba(24, 20, 16, 0.55);
+  /* A control ON the photograph: a dark disc, so the glyph or the text inside it stays
+     white whatever it happens to sit over. 0.55, not 0.42 — at 0.42 white over a
+     blown-out sky measures 2.73:1 and misses the 3:1 graphic floor. Lifted from the
+     sibling app, which measured it. */
+  --photo-control: rgba(24, 20, 16, 0.55);
+
+  /* ---- Radii -----------------------------------------------------------
+     Inner radius <= outer radius minus container padding. Never nest equal radii. */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.375rem;
+  --radius-full: 999px;
+
+  /* ---- Space: 4px base -------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2rem;
+  --space-8: 3rem;
+  /* The gap between two waypoints, and therefore how long the trail looks. Fluid,
+     because on a 320px phone 3rem of empty path is a lot of thumb travel and on a
+     monitor it is nothing. */
+  --space-trail: clamp(2.5rem, 9vw, 4.5rem);
+
+  /* ---- Fonts -----------------------------------------------------------
+     NO WEB FONTS. Zero network cost, and font-src stays 'self' in the CSP. The
+     invitation therefore looks slightly different on each platform, which is the
+     accepted price; self-hosting one subset woff2 in public/fonts/ is the upgrade path
+     and would not need a CSP change.
+
+     --font-serif IS A DELIBERATE BREAK WITH THE SIBLING APP, which bans serif and
+     display faces outright. Its reason was specific and good — a script face would have
+     made the one number people actually read harder to read — and it does not transfer:
+     nothing here is a number anybody has to parse, and a wedding invitation set
+     entirely in the system UI sans reads like a calendar event.
+
+     The Latin faces come first in both stacks so digits resolve from SF Pro / Segoe UI /
+     Roboto, which all ship tabular figures. CJK then falls through per locale — see the
+     html[lang] blocks below, which are load-bearing, not a nicety. */
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  /* Used by exactly one thing: the draft banner, which is a development aid and is
+     supposed to look like one. */
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---- Type ------------------------------------------------------------
+     Nothing below 13px anywhere: 12px kanji is mush, and 12px Han is worse. Weights are
+     400/500/600 only — 550 and 650 are unreliable outside SF Pro, and Hiragino ships
+     W3/W6 with nothing between. */
+  --fs-caption: 0.8125rem; /* 13 */
+  --fs-label: 0.875rem; /* 14 */
+  --fs-body: 1rem; /* 16 — also the iOS no-zoom floor for inputs */
+  --fs-lg: 1.125rem; /* 18 */
+  --fs-xl: 1.375rem; /* 22 */
+  --fs-2xl: 1.75rem; /* 28 */
+  /* The two names on the hero. Viewport-relative because it is the one thing that must
+     fill the width of a 320px phone and of a 40rem column without a media query. The
+     lower bound is what "Waylon" and "明日香" both fit inside at 320px. */
+  --fs-display: clamp(2rem, 11vw, 3.25rem);
+
+  /* Nothing below 1.5 can hold Japanese or Chinese: CJK glyphs fill the em box, and a
+     tighter line turns a wrapped sentence into a solid block. --lh-flat is the single
+     carve-out, for display type that renders one line only. */
+  --lh-flat: 1.1;
+  --lh-tight: 1.4;
+  --lh-body: 1.7;
+
+  /* The measure. Prose wants 60-75 Latin characters a line; CJK wants fewer, and gets
+     them for free because each glyph is twice as wide. */
+  --column-max: 34rem;
+
+  /* Letter-spacing for the small caps-ish labels. Applied to Latin ONLY — see the
+     html[lang] blocks: tracking out CJK pulls apart glyphs that are already separate
+     and reads as broken kerning rather than as elegance. */
+  --tracking-wide: 0.14em;
+
+  /* ---- Elevation -------------------------------------------------------
+     Shadows appear in exactly two places: a photo lightbox and the language switch when
+     it floats over the photograph. Nowhere else — not on cards, not on buttons — and
+     never added on hover. The focus ring is drawn with box-shadow too, but that is a
+     ring rather than an elevation. */
+  --shadow-overlay: 0 2px 8px rgba(28, 26, 23, 0.06),
+    0 16px 48px -12px rgba(28, 26, 23, 0.22);
+
+  /* ---- Metrics ---------------------------------------------------------
+     --trail-x is the distance from the content edge to the CENTRE of the dashed spine,
+     and --trail-node is the diameter of a waypoint disc. Everything about the trail
+     geometry derives from these two, so the spine and the discs cannot drift apart.
+
+     On a 320px screen: 16px page padding + 15px to the spine centre + 30px gutter
+     leaves 259px of text column. That is the tightest case the design has to hold, and
+     it is why --trail-x is not larger. */
+  --tap-target: 44px;
+  /* Fluid rather than fixed, and this is the whole reason the layout survives a 320px
+     iPhone SE. At that width the page is 288px inside its padding, and a fixed 18px +
+     34px trail would leave a 236px text column — about 28 Latin characters a line, which
+     is a poem, not a paragraph. Clamped, the same tokens give 259px there and a
+     comfortable 34px gutter on a monitor, with no media query anywhere. */
+  --trail-x: clamp(15px, 4.5vw, 19px);
+  --trail-node-size: clamp(28px, 8vw, 34px);
+  --trail-gutter: clamp(22px, 7vw, 32px);
+}
+
+/* ---- Per-locale fonts --------------------------------------------------
+   LOAD-BEARING, NOT DECORATION. Han unification means one codepoint per shared
+   character across Japanese and Chinese, but the correct GLYPH differs — 直, 骨, 次,
+   者, 每 are drawn differently in a Japanese face than in a Traditional Chinese one.
+   A single stack listing "Hiragino Sans" before "PingFang TC" therefore renders the
+   Chinese page in Japanese letterforms, which to a Taiwanese reader looks subtly and
+   persistently wrong in a way that is hard to name and easy to feel.
+
+   So the CJK faces are scoped to the document language, which `i18n/index.js` writes
+   onto <html> whenever the locale changes. The Latin heads stay identical across all
+   three, so the two names on the hero are drawn the same face in every language.
+
+   The `lang` values here must match SUPPORTED in i18n/catalogs.js exactly. */
+
+html[lang="ja"] {
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Hiragino Mincho ProN", "Yu Mincho", YuMincho, "Noto Serif JP", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+    "Yu Gothic Medium", "Yu Gothic", YuGothic, Meiryo, sans-serif;
+}
+
+/* Traditional Chinese. Songti TC is Apple's Ming/serif and the right partner for the
+   Latin serif; PingFang TC follows for anything Songti lacks. "Microsoft JhengHei" is
+   the Windows fallback and is a sans — accepted, because the alternative there is
+   PMingLiU, which renders unevenly at display sizes. */
+html[lang="zh-Hant"] {
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Songti TC", "Songti SC", "Noto Serif TC", PMingLiU, "PingFang TC", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "PingFang TC", "Heiti TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+}
+
+/* Tracking is a Latin-only device. In CJK it adds space between glyphs that are already
+   full-width and evenly set, so a "tracked out" label reads as a rendering fault. Both
+   CJK locales therefore zero it rather than inheriting the Latin value. */
+html[lang="ja"],
+html[lang="zh-Hant"] {
+  --tracking-wide: 0.02em;
+}
+
+/* ---- Motion ------------------------------------------------------------
+   Duration and easing live together so components can write
+   `transition: opacity var(--transition-base)`. Only opacity, transform, colour,
+   background-color and border-color are ever transitioned — never box-shadow, width,
+   height or `all`. */
+:root {
+  --transition-fast: 120ms ease;
+  --transition-base: 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* How far a waypoint travels as it reveals. Small on purpose: this is a page somebody
+     scrolls once, and a 40px slide on every one of ten sections is seasickness. */
+  --reveal-rise: 12px;
+}
+
+/* Zeroing these two neutralises every transition in the app without needing
+   !important anywhere. base.css carries a global fallback as a safety net for any
+   hardcoded duration, and the reveal observer checks the same query in JS so the
+   waypoints start visible rather than fading in instantly. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0.01ms linear;
+    --transition-base: 0.01ms linear;
+    --reveal-rise: 0px;
+  }
+}
+
+/* ---- iOS safe areas ----------------------------------------------------
+   Exposed as tokens so layout code can compose them, e.g.
+   `padding-bottom: calc(var(--space-6) + var(--safe-bottom))`.
+   Requires <meta name="viewport" content="… viewport-fit=cover">, which index.html sets. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}

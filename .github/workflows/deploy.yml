@@ -1,0 +1,71 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One Pages deployment at a time. Queued runs are not cancelled, so a push that lands
+# mid-deploy still ships instead of being silently dropped.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Without a cap a wedged install can hold a runner for hours.
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run tests
+        run: npm test
+
+      # NOTE: `npm run check:content` is DELIBERATELY NOT RUN HERE.
+      #
+      # It exists, it works, and it is the checklist for filling in src/content.js — but it
+      # is not a deploy gate, by explicit decision: this site is published before its
+      # details are final so it can be looked at on a real phone at a real URL.
+      #
+      # What guards against a placeholder reaching a guest instead is the yellow DRAFT
+      # banner the page renders while `DRAFT = true` in src/content.js. That is now the
+      # ONLY defence, so do not remove it before the content is real. Run
+      # `npm run check:content` by hand to see what is still outstanding.
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

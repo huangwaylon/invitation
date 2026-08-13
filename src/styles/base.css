@@ -1,0 +1,185 @@
+/* base.css — reset, global element defaults, focus rings, and the a11y/motion baseline.
+   Nothing here knows about the invitation; app.css and trail.css do that. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Stop iOS from inflating text after an orientation change. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  /* Kinsoku shori: keeps 、。」 from being orphaned at the start of a line. Harmless for
+     Latin, load-bearing for both CJK locales. */
+  line-break: strict;
+  /* The page is one long scroll of anchored sections, so this is what makes an in-page
+     link land softly instead of teleporting. Neutralised by the reduced-motion block. */
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* break-word, never break-all: break-all splits Latin words mid-glyph. */
+  overflow-wrap: break-word;
+  word-break: normal;
+  /* Horizontal safe area lives here so nothing hides under a landscape notch. Top and
+     bottom insets are deliberately NOT global: the hero paints INTO the top inset and
+     the footer pads its own bottom one. Use var(--safe-top) / var(--safe-bottom) there. */
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  /* The page is a single column with a fixed max width; nothing may scroll sideways.
+     Without this a decorative frond hanging past the column edge would add a horizontal
+     scrollbar on a 320px screen. */
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ul,
+ol {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-size: inherit;
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  /* Ragged-right is fine; a two-word orphan under a heading is not. */
+  text-wrap: balance;
+}
+
+p {
+  /* Latin prose only. `text-wrap: pretty` in a CJK paragraph does nothing useful and
+     costs layout work, but it is harmless enough not to be worth a lang carve-out. */
+  text-wrap: pretty;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+a {
+  color: var(--accent);
+  /* An underline offset far enough not to collide with a descender, and thin enough not
+     to look like a border. Never `text-decoration: none` on a link in prose. */
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+
+/* ---- Focus -------------------------------------------------------------
+   :focus-visible only, so a mouse click does not leave a ring behind. Two layers: a
+   white inner ring so the outer one stays visible against the sage accent itself, and
+   the accent outside it. Measured at 6.78:1 at worst — see check-contrast.js. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* Over the photograph the accent ring would be lost against a dark frame, so anything
+   that sits on the hero switches to a white ring instead. */
+.on-photo :focus-visible {
+  outline-color: var(--photo-ink);
+}
+
+/* ---- Screen-reader-only -----------------------------------------------
+   For the skip link and for a handful of labels whose visible form is a glyph. Not
+   `display: none`, which would take it out of the accessibility tree entirely. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The skip link becomes visible only while focused. First thing in the tab order, and
+   on a page this long it saves a keyboard user ten waypoints of tabbing. */
+.skip {
+  position: absolute;
+  top: calc(var(--space-2) + var(--safe-top));
+  left: var(--space-2);
+  z-index: 10;
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-overlay);
+  transform: translateY(-200%);
+}
+
+.skip:focus-visible {
+  transform: none;
+}
+
+/* Tabular figures, for the countdown and the clock times — so a digit changing does not
+   shift the characters after it. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---- Reduced motion ---------------------------------------------------
+   The primary mechanism is zeroing the motion tokens in tokens.css. This is the safety
+   net for anything that hardcodes a duration, plus the one property tokens cannot
+   reach. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

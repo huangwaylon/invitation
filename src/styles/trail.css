@@ -1,0 +1,220 @@
+/* trail.css — the dashed path, the waypoints strung along it, and the flora beside it.
+   The one structural idea in this design, so it gets its own file.
+
+   THE GEOMETRY, in one place. Everything derives from three tokens:
+
+     --trail-x        content-box left edge -> CENTRE of the dashed spine
+     --trail-node-size diameter of a waypoint disc
+     --trail-gutter   spine centre -> left edge of the text
+
+   so the spine and the discs cannot drift apart, and the text column starts at
+   calc(var(--trail-x) + var(--trail-gutter)) everywhere without a single hardcoded px.
+   All three are clamp()ed in tokens.css, which is what makes this work at 320px and at
+   1440px with no media query. */
+
+.page {
+  /* The text column is --column-max; the trail lives to the left of it, so the page is
+     wider than the measure by exactly the trail's own width. */
+  max-width: calc(var(--column-max) + var(--trail-x) + var(--trail-gutter));
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+.trail {
+  position: relative;
+}
+
+/* ---- A waypoint --------------------------------------------------------
+   `position: relative` here is what the spine segment and the flora are positioned
+   against, so each waypoint owns its own stretch of path. */
+.wp {
+  position: relative;
+  padding-left: calc(var(--trail-x) + var(--trail-gutter));
+  padding-bottom: var(--space-trail);
+}
+
+/* ---- The spine ---------------------------------------------------------
+   One segment per waypoint rather than one line down the whole list. Segments abut
+   exactly, so the dashes read as continuous — and doing it per-waypoint is what lets the
+   first one start at its own node's centre and the last one stop at the closing mark,
+   without measuring anything in JavaScript.
+
+   A repeating-linear-gradient, not `border-left: dashed`. Dashed borders have no
+   controllable rhythm: the engine picks the dash length from the border width and adjusts
+   it to fit, so the same 1.5px border draws visibly different dashes on two elements of
+   different heights. The gradient's 4-on-5-off is identical everywhere, which is what
+   lets the vertical spine and the horizontal rules in app.css share one rhythm. */
+.wp::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--trail-x) - var(--trail-weight) / 2);
+  width: var(--trail-weight);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--trail) 0,
+    var(--trail) var(--trail-dash),
+    transparent var(--trail-dash),
+    transparent calc(var(--trail-dash) + var(--trail-gap))
+  );
+}
+
+/* The path starts AT the first node, not above it — otherwise a stub of dashes hangs off
+   the top of the section into the hero. */
+.wp:first-child::before {
+  top: calc(var(--trail-node-size) / 2);
+}
+
+/* ---- The node ----------------------------------------------------------
+   A disc in --surface, so it punches a hole in the dashes rather than sitting on top of
+   them, with the glyph inside. Centred on the spine by pulling back half its own
+   diameter, which is why the diameter is a token and not a literal.
+
+   `flex` rather than absolute-centring the svg: the glyph is sized in em and its box is
+   1.25em square, so the disc has to centre a box whose size it does not know. */
+.wp__node {
+  position: absolute;
+  top: 0;
+  left: calc(var(--trail-x) - var(--trail-node-size) / 2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--trail-node-size);
+  height: var(--trail-node-size);
+  border: var(--trail-weight) solid var(--trail-node);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--accent);
+  /* The glyph, relative to the disc. 0.46 keeps roughly 27% of the disc as breathing
+     room on each side at every clamped size. */
+  font-size: calc(var(--trail-node-size) * 0.46);
+}
+
+/* THE ONE PIECE OF DELIBERATE IMPRECISION IN THE LAYOUT.
+   Alternating the glyph a few degrees off square is what makes a column of ten discs read
+   as drawn rather than as a form. It is applied to the GLYPH and not to the disc, because
+   the disc is a circle and rotating it does nothing; and it is 4-5 degrees and not 10,
+   because past about six the tent starts to look like it is falling over.
+
+   The spine itself stays perfectly straight. A meandering path was the first idea and it
+   is wrong: jogging each segment 2px sideways puts a hard horizontal step at every
+   waypoint boundary, which reads as a rendering fault rather than as a footpath. */
+.wp:nth-child(odd) .wp__node > svg {
+  transform: rotate(-4deg);
+}
+
+.wp:nth-child(even) .wp__node > svg {
+  transform: rotate(5deg);
+}
+
+/* ---- The heading -------------------------------------------------------
+   Aligned optically to the node beside it, not to its own line box: --lh-tight leaves
+   half a line of leading above the cap height, so a heading whose box top matches the
+   disc top LOOKS a few pixels low. */
+.wp__head {
+  display: block;
+  min-height: var(--trail-node-size);
+  padding-top: calc((var(--trail-node-size) - 1em * 1.4) / 2);
+  margin-bottom: var(--space-4);
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 400;
+  line-height: var(--lh-tight);
+  color: var(--ink);
+}
+
+/* ---- The flora ---------------------------------------------------------
+   Grows in the gutter between the spine and the text, near the foot of each waypoint —
+   which is the only strip of empty page that exists at 320px. To the LEFT of the spine
+   there is nothing to grow in: at that width the spine centre is 15px from the content
+   edge and the page padding is 16px, so a plant there would either overlap the disc or
+   hang off the screen and add a horizontal scrollbar.
+
+   aria-hidden and painted in --flora, the faintest colour in the palette. See the note at
+   the foot of icons.jsx: if any of these ever labels anything, it has to change weight
+   and colour and gain a row in check-contrast.js. */
+.wp__flora {
+  position: absolute;
+  bottom: calc(var(--space-trail) * 0.28);
+  left: calc(var(--trail-x) + var(--trail-weight));
+  color: var(--flora);
+  font-size: 1.05rem;
+  /* Below the node and the text in paint order; nothing overlaps, but if the type ever
+     grows into this strip the words must win. */
+  z-index: -1;
+}
+
+/* Same alternation as the nodes, mirrored, so a plant and the disc above it never lean
+   the same way — which is what would make the whole column look like it is tilted rather
+   than hand-placed. */
+.wp:nth-child(odd) .wp__flora > svg {
+  transform: rotate(6deg);
+}
+
+.wp:nth-child(even) .wp__flora > svg {
+  transform: rotate(-7deg) translateX(1px);
+}
+
+/* ---- The end of the path ----------------------------------------------
+   A short run of dashes past the last waypoint, closing on the couple's own mark. The
+   trail has to STOP somewhere visible: a dashed line that simply runs out at the bottom
+   of the last paragraph reads as a page that failed to finish loading.
+
+   Both children are absolutely positioned, so this element has no content to give it a
+   height — hence the explicit min-height, which is exactly the stub plus the mark that
+   hangs off its end. Without it the mark overlaps the closing line beneath. */
+.trail__end {
+  position: relative;
+  min-height: calc(var(--space-trail) + var(--trail-node-size));
+  padding-bottom: var(--space-7);
+}
+
+.trail__end::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: var(--space-trail);
+  left: calc(var(--trail-x) - var(--trail-weight) / 2);
+  width: var(--trail-weight);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--trail) 0,
+    var(--trail) var(--trail-dash),
+    transparent var(--trail-dash),
+    transparent calc(var(--trail-dash) + var(--trail-gap))
+  );
+}
+
+.trail__summit {
+  position: absolute;
+  top: var(--space-trail);
+  left: calc(var(--trail-x) - var(--trail-node-size) / 2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--trail-node-size);
+  height: var(--trail-node-size);
+  color: var(--trail-node);
+  font-size: calc(var(--trail-node-size) * 0.5);
+}
+
+/* ---- Reveal ------------------------------------------------------------
+   Opt-IN, and the direction matters. The hidden state is scoped to
+   `[data-reveal="on"]`, an attribute React only writes when IntersectionObserver exists
+   and the reader has not asked for reduced motion. So the default — no JavaScript, an old
+   engine, reduced motion, a test rendering to static markup — is every waypoint fully
+   visible. Doing it the other way round, hiding by default and revealing with JS, means
+   one failed script leaves a blank invitation.
+
+   Only opacity and transform, both compositor-only. */
+.trail[data-reveal="on"] .wp:not(.is-visible),
+.trail[data-reveal="on"] .trail__end:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(var(--reveal-rise));
+}
+
+.wp,
+.trail__end {
+  transition: opacity var(--transition-base), transform var(--transition-base);
+}

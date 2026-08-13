@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover is what makes the --safe-* tokens in tokens.css resolve to
+         anything other than 0, which the full-bleed photo hero and the footer both need. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#faf7f4" />
+    <meta name="color-scheme" content="light" />
+
+    <!--
+      KEEP THIS PAGE OUT OF SEARCH RESULTS. The repo is public, so the URL is reachable by
+      anyone, and this page carries a date, a street address and fifteen people's names. The
+      link is meant to be shared; it is not meant to be the top result for anybody's name.
+
+      THIS TAG IS THE WHOLE MECHANISM, and `public/robots.txt` is not — read the comment in
+      that file. robots.txt is resolved per ORIGIN, at `/robots.txt`, and this site is a
+      GitHub project page served from `/invitation/`, so the file ships to
+      `/invitation/robots.txt` where no crawler ever looks. The origin root belongs to a
+      `huangwaylon.github.io` user-site repo that does not exist.
+
+      `noindex` is honoured by Google, Bing and DuckDuckGo and is strictly stronger than a
+      robots.txt disallow anyway: a disallow only stops the crawl, and a URL that is linked
+      from elsewhere can still be indexed unfetched. `noindex` removes the page itself.
+
+      Delete both of these to make the invitation publicly searchable.
+    -->
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!--
+      An inline data-URI favicon rather than a file: it costs no request, and without one
+      every page load logs a 404 for /favicon.ico. The two-peak mark on the sage accent —
+      the same path as `PeaksIcon` in src/components/icons.jsx and the same shape
+      scripts/make-icons.js rasterises for the Home Screen. All three must not drift.
+      Covered by `img-src 'self' data:` below.
+    -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23385844'/%3E%3Cpath d='M6 23 12 12l3.4 5.6L19 12l6 11Z' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+
+    <!-- Plain absolute paths, not %BASE_URL%: Vite's dev server already prepends `base` to a
+         leading-slash href exactly once, and %BASE_URL% would double it in dev. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Invitation" />
+
+    <!--
+      IF YOU SET `HERO.src` IN src/content.js, UNCOMMENT THIS AND MATCH THE FILENAME.
+
+      The hero photograph would be the largest-contentful-paint element, and React renders
+      it, so the preload scanner cannot see it in the HTML — without a preload the request
+      does not start until the bundle has downloaded, parsed and committed a first render.
+      `fetchpriority="high"` is the other half: an `as="image"` preload is queued at low
+      priority by default and would then wait behind that same bundle.
+
+      It is commented out rather than present-and-empty because content.js ships with no
+      photograph, and a preload for a file that does not exist is a guaranteed 404 on every
+      single page load.
+
+      <link rel="preload" as="image" href="/hero.jpg" fetchpriority="high" />
+    -->
+
+    <!--
+      An allowlist, not boilerplate. NO THIRD-PARTY JAVASCRIPT RUNS ON THIS PAGE AT ALL, and
+      `script-src 'self'` is what keeps it that way — there is no analytics snippet, no font
+      loader, no map embed and no RSVP widget.
+
+      `connect-src 'self'` rather than 'none', which is what the shipped page actually needs
+      (it makes no requests after load): Vite's dev server talks to the page over a
+      same-origin WebSocket for hot reload, and this tag applies in dev too. 'none' would
+      leave dev permanently disconnected with a console error that looks like a bug in the
+      app.
+
+      `img-src 'self' data:` covers the inline favicon above and the photographs in
+      public/photos/. `font-src 'self'` is possible because there are no web fonts — see the
+      font stacks in tokens.css.
+
+      `style-src` needs 'unsafe-inline' for the <style> tags Vite injects in DEV; a
+      production build emits a real stylesheet and does not rely on it. Tightening it would
+      mean giving up `npm run dev`.
+
+      `frame-src 'none'` is the one that encodes a design decision: there is deliberately no
+      embedded map iframe. See src/lib/maps.js.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self';
+        connect-src 'self';
+        img-src 'self' data:;
+        style-src 'self' 'unsafe-inline';
+        font-src 'self';
+        frame-src 'none';
+        base-uri 'none';
+        form-action 'none';
+        object-src 'none';
+      "
+    />
+
+    <!-- Replaced by App.jsx with the couple's names in the reader's language as soon as the
+         bundle runs. This is what a link preview and a bookmark made before then will say. -->
+    <title>Waylon &amp; Asuka</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

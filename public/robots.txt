@@ -1,0 +1,21 @@
+# robots.txt for the invitation.
+#
+# READ THIS BEFORE TRUSTING IT. On the current deployment this file DOES NOTHING, and that is
+# not a mistake in the file — it is where the file has to live.
+#
+# robots.txt is resolved per ORIGIN, at exactly `/robots.txt`. This site is a GitHub *project*
+# page, served from `https://huangwaylon.github.io/invitation/`, so this file ships to
+# `/invitation/robots.txt`, which no crawler ever requests. The origin root would belong to a
+# `huangwaylon.github.io` user-site repo, and there isn't one.
+#
+# WHAT ACTUALLY KEEPS THIS PAGE OUT OF SEARCH RESULTS is the `<meta name="robots"
+# content="noindex, nofollow">` tag in index.html. That tag is also the stronger of the two:
+# a robots.txt disallow only prevents the crawl, and a URL that is linked from anywhere else
+# can still be indexed without ever being fetched. `noindex` removes the page itself.
+#
+# So this file is here for two reasons only: it becomes live the moment the site moves to a
+# custom domain or to the user-site root, and it documents the above so nobody adds it a second
+# time believing it is the mechanism.
+
+User-agent: *
+Disallow: /

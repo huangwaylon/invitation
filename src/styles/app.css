@@ -1,0 +1,811 @@
+/* app.css — everything that is not the trail: the hero, the inside of each waypoint, the
+   two buttons, and the footer.
+
+   Ordered top of page to bottom of page, which is also the order somebody debugging it
+   will look in. */
+
+/* ======================================================================
+   THE LANGUAGE SWITCH
+   ======================================================================
+   Top of the page, before the hero, and NOT floating over it. A pill floating on the
+   photograph looked better in isolation and was worse in use: it needs a dark disc behind
+   it to stay legible over an unknown image, and at three options that disc becomes a
+   sizeable slab covering the top of the one photograph on the page.
+
+   Three options, all always visible, no dropdown. A `<select>` would be one tap smaller
+   and would hide two of the three languages behind a native sheet — which is exactly the
+   wrong trade for the control that decides whether a guest can read the page at all. */
+
+.langbar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: calc(var(--space-3) + var(--safe-top));
+  padding-bottom: var(--space-2);
+}
+
+.langswitch {
+  display: flex;
+  gap: var(--space-1);
+  padding: 3px;
+  border: var(--trail-weight) solid var(--line);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+}
+
+.langswitch__option {
+  min-height: var(--tap-target);
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wide);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.langswitch__option:hover {
+  color: var(--ink);
+  background: var(--sunken);
+}
+
+/* `aria-current="true"` IS the selected state, not a class. One attribute doing both jobs
+   means the visual state and the announced state cannot disagree. */
+.langswitch__option[aria-current="true"] {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+/* ======================================================================
+   THE HERO
+   ====================================================================== */
+
+/* The top margin is not decorative: the seal below straddles the frame's top border by half of
+   --space-8, and the language switch sits directly above with only --space-2 of its own. Without
+   this the mark and the switch's leftmost option overlap on a 390px screen — which they did. */
+.hero {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-7);
+}
+
+/* ---- The drawn hero, used when no photograph is set --------------------
+   A dashed card with the couple's mark set into its top edge like a seal. This is the
+   DEFAULT and not the fallback: content.js ships with no hero image, so this is what the
+   page looks like out of the box, and it has to stand on its own rather than look like a
+   picture failed to load.
+
+   `border: dashed` here, where trail.css deliberately refuses it. The objection there was
+   rhythm — dashed borders derive their dash length from the border width and stretch it to
+   fit the box, so two segments of different heights draw visibly different dashes. This
+   frame has no neighbouring segment to match, so the only thing that matters is that it
+   looks hand-ruled, and a border does that in one line. */
+.hero__frame {
+  position: relative;
+  padding: var(--space-8) var(--space-5) var(--space-6);
+  border: var(--trail-weight) dashed var(--trail);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  text-align: center;
+}
+
+/* The seal. Pulled up so it straddles the frame's top border, with a --surface disc that
+   punches the dashes out behind it — the overlap is the whole effect, and it is why this
+   is absolutely positioned rather than being the first child in flow. */
+.hero__mark {
+  position: absolute;
+  top: calc(var(--space-8) / -2 - 2px);
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: var(--trail-weight) solid var(--trail-node);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 22px;
+}
+
+.hero__eyebrow {
+  margin-bottom: var(--space-4);
+  color: var(--ink-3);
+  font-size: var(--fs-caption);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* The two names. `--fs-display` is viewport-relative so this fits a 320px screen and a
+   40rem column with no media query; `--lh-flat` because it renders one or two lines of
+   display type and --lh-body would open a canyon between them.
+
+   `wrap: balance` matters here specifically: at 320px "Waylon & Asuka" breaks to two
+   lines, and the default break leaves "& Asuka" hanging. */
+.hero__names {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0 var(--space-3);
+  font-family: var(--font-serif);
+  font-size: var(--fs-display);
+  font-weight: 400;
+  line-height: var(--lh-flat);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* The ampersand: italic, ochre, and a size step down. The one flourish on the page, and
+   the reason it is allowed is that it is a LIGATURE by nature — an italic ampersand is a
+   drawing of the word "et" and looks like it was meant to be that shape.
+
+   NOT aria-hidden. Hiding it would make the accessible name "Waylon Asuka", which is a
+   list of two people rather than a couple. */
+.hero__amp {
+  font-style: italic;
+  font-size: 0.62em;
+  color: var(--ochre);
+}
+
+/* A dashed rule, sharing the spine's exact 4-on-5-off rhythm — this is the one place the
+   hero and the trail have to look like the same drawing, because they are six pixels
+   apart. Hence a gradient rather than a border. */
+.hero__rule {
+  width: 64px;
+  height: var(--trail-weight);
+  margin: var(--space-5) auto;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--trail) 0,
+    var(--trail) var(--trail-dash),
+    transparent var(--trail-dash),
+    transparent calc(var(--trail-dash) + var(--trail-gap))
+  );
+}
+
+.hero__date {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  color: var(--ink);
+}
+
+.hero__where {
+  margin-top: var(--space-2);
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+}
+
+/* The countdown. A quiet chip rather than a headline: it is the one thing on the page that
+   changes by itself, and giving it display size would make the invitation look like a
+   sale. Tabular figures so a three-digit day count does not shuffle the words after it. */
+.hero__count {
+  display: inline-block;
+  margin-top: var(--space-5);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-size: var(--fs-caption);
+  font-weight: 500;
+}
+
+/* Two faint sprigs in the bottom corners of the frame. Inside the padding, so they never
+   collide with the type; `overflow: hidden` on the frame would clip the seal, so instead
+   they are simply placed where there is room. */
+.hero__sprig {
+  position: absolute;
+  bottom: var(--space-3);
+  color: var(--flora);
+  font-size: 1.15rem;
+}
+
+.hero__sprig--left {
+  left: var(--space-4);
+  transform: rotate(-16deg);
+}
+
+.hero__sprig--right {
+  right: var(--space-4);
+  transform: rotate(16deg) scaleX(-1);
+}
+
+/* ---- The photograph hero, used when content.js sets one ----------------
+   Full-bleed, escaping the page's own padding and max-width — a photograph inset in a
+   column with paper either side reads as a document attachment rather than as a header. */
+.hero--photo {
+  position: relative;
+  /* Break out of .page's centred column. `100vw` rather than `100%`, offset by half the
+     difference, which is the one reliable full-bleed trick that does not need the parent
+     to know its own width. `overflow-x: hidden` on body absorbs the scrollbar rounding. */
+  width: 100vw;
+  margin-left: 50%;
+  translate: -50% 0;
+  min-height: 78svh;
+  display: flex;
+  align-items: flex-end;
+  isolation: isolate;
+}
+
+/* svh, not vh: on iOS `vh` is the LARGEST viewport, so with Safari's toolbars showing, a
+   100vh hero has its bottom — the part with the names on it — hidden behind the chrome.
+   78svh fills the visible area and still shows a sliver of paper beneath, which is what
+   tells a reader there is more page. */
+
+.hero__img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--photo-scrim);
+}
+
+.hero--photo .hero__text {
+  width: 100%;
+  padding: var(--space-7) var(--space-5) calc(var(--space-7) + var(--safe-bottom));
+  text-align: center;
+  color: var(--photo-ink);
+  text-shadow: var(--photo-shadow);
+}
+
+.hero--photo .hero__names,
+.hero--photo .hero__date {
+  color: var(--photo-ink);
+}
+
+.hero--photo .hero__eyebrow,
+.hero--photo .hero__where {
+  color: var(--photo-ink-2);
+}
+
+/* Over an unknown photograph the ochre ampersand and the sage chip both lose their
+   measured contrast, so on this variant they revert to white on the scrim. */
+.hero--photo .hero__amp {
+  color: var(--photo-ink);
+}
+
+.hero--photo .hero__count {
+  background: var(--photo-control, rgba(24, 20, 16, 0.55));
+  color: var(--photo-ink);
+}
+
+.hero--photo .hero__rule {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--photo-ink-2) 0,
+    var(--photo-ink-2) var(--trail-dash),
+    transparent var(--trail-dash),
+    transparent calc(var(--trail-dash) + var(--trail-gap))
+  );
+}
+
+/* ======================================================================
+   SHARED PIECES INSIDE A WAYPOINT
+   ====================================================================== */
+
+/* Body prose. --ink-2 rather than --ink: at this measure a full-strength paragraph under a
+   full-strength heading flattens the hierarchy, and 7.45:1 has room to spare. */
+.prose {
+  color: var(--ink-2);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* A small label above a group — "Dress", "Worth having in a bag". Sans, tracked, and the
+   tracking is zeroed for CJK by the --tracking-wide override in tokens.css. */
+.label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--ink-3);
+  font-family: var(--font-sans);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+}
+
+/* A label that follows a paragraph rather than opening a section. A modifier class and not
+   an inline style: `style={{marginTop}}` would work — React writes styles through the CSSOM,
+   which `style-src` does not block — but it puts a spacing value outside the token system
+   where no future change to --space-6 can reach it. */
+.label--spaced {
+  margin-top: var(--space-6);
+}
+
+.card {
+  padding: var(--space-5);
+  border: var(--trail-weight) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+/* ---- Buttons -----------------------------------------------------------
+   Two, and only two. `--tap-target` is a MIN-height rather than a height so a label that
+   wraps on a narrow screen grows the button instead of overflowing it. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-target);
+  padding: var(--space-2) var(--space-4);
+  border: var(--trail-weight) solid transparent;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+  color: var(--accent-text);
+}
+
+/* The secondary. --line-input and not --line: this border is the only thing identifying
+   the control's extent, so it is held to the 3:1 boundary floor. */
+.btn--quiet {
+  border-color: var(--line-input);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.btn--quiet:hover {
+  background: var(--sunken);
+  color: var(--ink);
+}
+
+.btn__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ======================================================================
+   THE DAY — the schedule
+   ======================================================================
+   A description list, because that is what it is: seven times, each with a thing that
+   happens at it. `dl` also gives a screen reader the pairing for free.
+
+   The time is its own column and the glyph is NOT repeated here — every row already has
+   one on the trail beside it, and a second column of pictures inside the section would
+   compete with the waypoint discs six pixels to the left. */
+
+.schedule {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.schedule__row {
+  display: grid;
+  /* The time column is sized to its content, capped, so 11:00 and 上午11:00 both fit and
+     the titles still line up with each other. */
+  grid-template-columns: minmax(3.5rem, auto) 1fr;
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+}
+
+.schedule__time {
+  color: var(--accent);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.schedule__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+/* The note sits under the title, in the title's column — not under both columns, so the
+   time stays a clean gutter down the left of the section. */
+.schedule__note {
+  grid-column: 2;
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+}
+
+/* A row with no time at all (`at: null` in content.js) gives its title the full width
+   rather than leaving an empty column, which would read as a missing value. */
+.schedule__row--untimed .schedule__title,
+.schedule__row--untimed .schedule__note {
+  grid-column: 1 / -1;
+}
+
+/* ======================================================================
+   WHERE
+   ====================================================================== */
+
+.venue__name {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  color: var(--ink);
+}
+
+.venue__area {
+  margin-top: var(--space-1);
+  color: var(--ink-3);
+  font-size: var(--fs-caption);
+}
+
+/* The address, one line per array entry from content.js. `<address>` is the right element
+   and it is italic by default in every engine, which is not wanted here. */
+.venue__address {
+  margin-top: var(--space-4);
+  font-style: normal;
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+  line-height: var(--lh-tight);
+}
+
+.venue__address li + li {
+  margin-top: 2px;
+}
+
+.venue__actions {
+  margin-top: var(--space-5);
+}
+
+/* The copy confirmation. `aria-live="polite"` on a region that is EMPTY until the copy
+   succeeds — announcing an empty box on page load is the classic live-region mistake. */
+.venue__copied {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--accent);
+  font-size: var(--fs-caption);
+  font-weight: 500;
+}
+
+.venue__phone {
+  margin-top: var(--space-4);
+  font-size: var(--fs-label);
+}
+
+/* ======================================================================
+   GETTING THERE, and WHAT TO BRING — both are glyph + heading + paragraph
+   ====================================================================== */
+
+.detail {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.detail__row {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: var(--space-1) var(--space-3);
+  align-items: start;
+}
+
+.detail__glyph {
+  /* Optically aligned to the cap height of the heading beside it rather than to its line
+     box, which sits a couple of pixels low at --lh-tight. */
+  margin-top: 2px;
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.detail__title {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.detail__note {
+  grid-column: 2;
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+}
+
+/* The kit list is the same shape at a smaller scale — four short items rather than four
+   paragraphs, so it tightens up and drops to a single line each where it can. */
+.kit {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.kit .detail__note {
+  font-size: var(--fs-caption);
+}
+
+/* ======================================================================
+   HOW WE GOT HERE
+   ====================================================================== */
+
+.story {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.story__row {
+  display: grid;
+  grid-template-columns: minmax(2.75rem, auto) 1fr;
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+}
+
+/* The year in ochre — the one place the second hue carries a word rather than a shape,
+   which is why it is held to full AA in tokens.css. */
+.story__year {
+  color: var(--ochre);
+  font-family: var(--font-serif);
+  font-size: var(--fs-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.story__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.story__note {
+  grid-column: 2;
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+}
+
+/* ======================================================================
+   PHOTOGRAPHS
+   ======================================================================
+   Two columns on a phone, which is the right number: one column makes the gallery as long
+   as the rest of the page put together, and three makes each photograph a thumbnail
+   nobody can see. */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+.gallery__item {
+  margin: 0;
+}
+
+.gallery__button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--sunken);
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.gallery__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Set per-photo from content.js's w/h as an inline style. Without a declared ratio the
+     page reflows as each image lands, which on a phone means the paragraph somebody is
+     reading jumps up the screen. */
+  aspect-ratio: 1;
+}
+
+/* ---- The lightbox ------------------------------------------------------
+   A native <dialog>. `showModal()` gives the focus trap, the Escape handler, the inert
+   background and the top-layer stacking for free — all four of which are what a
+   hand-rolled lightbox gets wrong. */
+.lightbox {
+  width: min(100vw, 100%);
+  max-width: 100vw;
+  max-height: 100svh;
+  margin: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.lightbox::backdrop {
+  background: rgba(24, 20, 16, 0.88);
+}
+
+.lightbox__img {
+  max-width: 100vw;
+  max-height: 88svh;
+  margin: auto;
+  object-fit: contain;
+}
+
+.lightbox__close {
+  position: absolute;
+  top: calc(var(--space-3) + var(--safe-top));
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border: 0;
+  border-radius: var(--radius-full);
+  /* A dark disc, so the white glyph inside stays white whatever the photograph behind it
+     happens to be — the same reasoning as the sibling app's --photo-control. */
+  background: rgba(24, 20, 16, 0.55);
+  color: var(--photo-ink);
+  cursor: pointer;
+}
+
+.lightbox__caption {
+  padding: var(--space-3) var(--space-4) calc(var(--space-4) + var(--safe-bottom));
+  color: var(--photo-ink-2);
+  font-size: var(--fs-caption);
+  text-align: center;
+}
+
+/* ======================================================================
+   GOOD TO KNOW
+   ======================================================================
+   <details>/<summary>, so it works with no JavaScript and the browser owns the expanded
+   state and its announcement. */
+
+.faq {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.faq__item {
+  border-bottom: var(--trail-weight) solid var(--line);
+}
+
+.faq__item:last-child {
+  border-bottom: 0;
+}
+
+.faq__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--tap-target);
+  padding: var(--space-3) 0;
+  color: var(--ink);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  cursor: pointer;
+  /* Removes the disclosure triangle in every engine — Safari needs the -webkit- form and
+     Firefox needs `list-style: none`. The chevron replaces it. */
+  list-style: none;
+}
+
+.faq__q::-webkit-details-marker {
+  display: none;
+}
+
+.faq__chevron {
+  flex: none;
+  color: var(--ink-3);
+  transition: transform var(--transition-fast);
+}
+
+.faq__item[open] .faq__chevron {
+  transform: rotate(180deg);
+}
+
+.faq__a {
+  padding-bottom: var(--space-4);
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+}
+
+/* ======================================================================
+   THE FIFTEEN
+   ======================================================================
+   A plain list, set in the serif, one name a line. Not a grid of cards and not a table:
+   fifteen names are a guest list, and the warmest thing the page can do with them is
+   simply write them out. */
+
+.guests {
+  display: grid;
+  gap: var(--space-2);
+  font-family: var(--font-serif);
+  font-size: var(--fs-body);
+  color: var(--ink);
+}
+
+.guests__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+/* A short dash before each name, at the trail's own colour, so the list reads as more
+   waypoints rather than as bullet points. */
+.guests__row::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: var(--trail-weight);
+  background: var(--trail);
+  translate: 0 -0.3em;
+}
+
+/* ======================================================================
+   THE CLOSING
+   ====================================================================== */
+
+.closing {
+  padding-bottom: var(--space-7);
+  text-align: center;
+}
+
+.closing__line {
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 400;
+  line-height: var(--lh-tight);
+  color: var(--ink);
+}
+
+.closing__names {
+  margin-top: var(--space-3);
+  color: var(--ink-3);
+  font-family: var(--font-serif);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-wide);
+}
+
+.closing__actions {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-7);
+}
+
+.closing__hint {
+  color: var(--ink-3);
+  font-size: var(--fs-caption);
+}
+
+.closing__contact {
+  margin-top: var(--space-6);
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+}
+
+.footer {
+  padding-block: var(--space-6) calc(var(--space-6) + var(--safe-bottom));
+  color: var(--ink-4);
+  font-size: var(--fs-caption);
+  text-align: center;
+}
+
+/* ======================================================================
+   THE DRAFT BANNER
+   ======================================================================
+   Only rendered while content.js still has DRAFT = true. Deliberately ugly: it is a
+   development aid, and the moment it looks designed is the moment somebody ships it.
+   `npm run check:content` fails while the flag is set and the deploy workflow runs that
+   check before it builds, so this should never reach a guest — the banner is the second
+   line of defence, not the first. */
+
+.draft {
+  padding: var(--space-3) var(--space-4);
+  background: #fff3cd;
+  border-bottom: 2px solid #b8860b;
+  color: #4a3a06;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-tight);
+  text-align: center;
+}
