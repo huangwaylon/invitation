@@ -67,6 +67,18 @@ comment next to the code it governs; read that first.
   reach let the curve draw to x=65 in a 49-wide box, where an SVG clips it to a flat edge. The left
   side has the page's own padding behind it and roughly twice the room of the right, which is why
   `.trail__drawing` has a negative `left` and why the loops are weighted toward that side.
+- **THE WAVES ARE HELD BELOW THEIR AVAILABLE REACH — 0.42 to 0.68 — TO BALANCE THE LOOPS.** The two
+  gestures share the same width but do not read at the same scale: a crest at the full reach is a sweep
+  spread over 200px of height, while a loop at the full reach is a circle of that diameter. At the
+  original 0.62–1.0 the meander dominated and the loops read as ornaments hung off it. A loop cannot
+  grow to match, being capped at half the reach, so the waves give way. `test/trail.test.js` asserts
+  the median loop diameter against the wave's PEAK-TO-PEAK — comparing it against a single crest,
+  which is half a wave, makes the ratio look twice as bad as it is.
+- **Variety between consecutive loops is STRUCTURAL, not probabilistic.** `lastLoopSide` and
+  `lastLoopScale` carry across spans: the side mostly alternates and the size is pushed at least a
+  quarter of the range from the previous one. Probability that is right on average was wrong on the
+  page in front of me twice — once with all six loops down the left, once with three on the narrow side
+  within half a pixel of each other.
 - **Seed per span with a HASH, never `seed + span * stride`.** mulberry32 advances by a fixed constant
   and hashes, so seeds a fixed stride apart give correlated first outputs — and every early draw here is
   a decision. The symptom was every loop on a page landing on the same side within 3px of the same

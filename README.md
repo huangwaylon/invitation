@@ -96,7 +96,7 @@ before the content is real.
 # a bare install bakes that unreachable host into the lockfile and CI dies. See CLAUDE.md.
 npm install --registry=https://registry.npmjs.org
 npm run dev             # http://localhost:5173/invitation/
-npm test                # 161 tests, no jsdom
+npm test                # 163 tests, no jsdom
 npm run check:content   # what is still placeholder in content.js (not enforced in CI)
 npm run contrast        # re-measure the palette; paste the numbers into tokens.css
 npm run icons           # regenerate the Home Screen PNGs from the peaks mark
@@ -140,6 +140,18 @@ line by its own radius, reaching a further radius past that. So the usable radiu
 reach, and the two sides are nothing like equal — the left has the page's padding behind it and the
 right runs into the text column. Loops therefore go on whichever side can hold a round one, weighted
 toward the roomier, with the radius biased toward the large end of what fits.
+
+**The waves are deliberately held below their available reach, to balance the loops.** Both gestures
+share the same width but do not read at the same scale: a crest at the full reach is a sweep spread over
+200px of height, where a loop at the full reach is a circle of that diameter. So the sweeps dominated
+and the loops looked like ornaments hung off them. A loop cannot grow to match — it is already capped
+at half the reach — so the waves gave way instead, to 42–68% of theirs. A median loop is now about the
+same size as a full wave peak-to-peak, and there is a test holding that ratio.
+
+**Variety between consecutive loops is structural rather than probabilistic**, because probability that
+is right on average was wrong on the page twice: once with all six loops down one side, once with three
+of them within half a pixel of the same size. The side mostly alternates and the size is pushed at least
+a quarter of the range away from the previous loop's.
 
 [`test/trail.test.js`](test/trail.test.js) asserts the geometry directly, because the generator is a
 pure function: that the curve passes through every disc, stays inside its box with its stroke, turns

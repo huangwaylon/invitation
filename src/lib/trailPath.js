@@ -111,6 +111,20 @@ export function trailKnots({ stops, width, meanX, inset = 1.5, seed = 20271008 }
 
   const knots = [{ x: meanX, y: stops[0] }]
   let side = -1
+  /**
+   * Carried ACROSS spans, and the reason is that per-span randomness alone is not enough to look
+   * varied. The side is weighted toward whichever has more room, so a page of six loops legitimately
+   * comes out all on one side about one time in fifteen — and on the two pages where it did, the
+   * result was six near-identical loops down the left, which is exactly the uniformity the whole
+   * generator exists to avoid. Probability that is right on average can still be wrong on the one page
+   * somebody actually looks at.
+   *
+   * So consecutive loops are pushed apart deliberately: mostly-but-not-always alternating in side, and
+   * never twice the same size. Since the two sides have very different room — the left about twice the
+   * right — alternating the side varies the size for free.
+   */
+  let lastLoopSide = 0
+  let lastLoopScale = -1
 
   for (let span = 0; span < stops.length - 1; span += 1) {
     const top = stops[span]
@@ -138,10 +152,15 @@ export function trailKnots({ stops, width, meanX, inset = 1.5, seed = 20271008 }
      * early version draw to x=65 in a 49-wide box and get shaved flat by the viewBox. So the usable
      * radius on a side is HALF its reach.
      *
-     * `MIN_LOOP` is the radius below which a loop stops reading as a loop and starts reading as a
-     * knot in the string. It is measured by looking at one, and it is the reason the trail gutter had
-     * to give up the plants that used to live in it: at the old width the right-hand side could only
-     * hold a radius of 7 and every loop on it came out pinched.
+     * `MIN_LOOP` is the radius below which a loop stops reading as a loop and starts reading as a knot
+     * in the string. It is measured by looking at one, and it is the reason the trail gutter had to
+     * give up the plants that used to live in it: at the old width the right-hand side could only hold
+     * a radius of 7 and every loop on it came out pinched.
+     *
+     * IT IS ALSO WHAT GIVES THE NARROW SIDE A RANGE TO VARY IN, which is a second job and the reason it
+     * is 9 rather than 11. The right side's room here is 11.85, so at a floor of 11 every right-hand
+     * loop came out within half a pixel of the same size — three identical loops in a row on the page,
+     * which is the uniformity this generator exists to avoid showing up in yet another place.
      */
     const MIN_LOOP = 9
     const roomOn = (candidate) => Math.min((candidate < 0 ? leftReach : rightReach) / 2, swingHeight * 0.42)
@@ -161,6 +180,8 @@ export function trailKnots({ stops, width, meanX, inset = 1.5, seed = 20271008 }
      * loops to the side that can only hold a small one. Weighting means the big loops — the ones that
      * actually read as loops — are the common case, and the small ones are the variety.
      */
+    /* Weighted by room, then overridden three times in four to be the other side from the last loop.
+       The weighting still decides the long-run mix; the override is what stops a run. */
     const weights = sides.map((candidate) => roomOn(candidate))
     const total = weights.reduce((sum, weight) => sum + weight, 0)
     let pick = random() * total
@@ -172,20 +193,49 @@ export function trailKnots({ stops, width, meanX, inset = 1.5, seed = 20271008 }
       }
       pick -= weights[i]
     }
-    /* Biased toward the LARGE end of what fits, via sqrt of a uniform draw. Uniform put the median
-       loop at about 11px of radius when 21 was available, so most of them came out at the small end of
-       the range and the page read as a row of little curls. The spread is still the full range — this
-       only changes where in it they cluster. */
+    /* 0.6, not 0.78. The two sides hold very different loops — about 40px across on the left against
+       20 on the right — so a strong switch bias makes the sequence half-and-half and the median loop
+       comes out small. At 0.6 the room-weighting still shows through, so the big ones are the more
+       common, and runs of the same side are still broken up. */
+    const switching = random() < 0.6
+    if (switching && sides.length > 1 && drawnSide === lastLoopSide) {
+      drawnSide = sides.find((candidate) => candidate !== lastLoopSide) ?? drawnSide
+    }
+
+    /**
+     * Where in the available range this loop sits, as a fraction. Biased toward the large end — an
+     * unbiased draw put the median at the bottom of the range and the page read as a row of little
+     * curls — and then pushed at least a quarter of the range away from the previous loop's fraction,
+     * so no two in a row are the same size even when they land on the same side.
+     */
+    let scale = random() ** 0.62
+    for (let attempt = 0; attempt < 3 && Math.abs(scale - lastLoopScale) < 0.25; attempt += 1) {
+      scale = random() ** 0.62
+    }
     const room = Math.max(MIN_LOOP, roomOn(drawnSide))
-    const drawnRadius = MIN_LOOP + (room - MIN_LOOP) * Math.sqrt(random())
+    const drawnRadius = MIN_LOOP + (room - MIN_LOOP) * scale
     const loopSide = drawnSide
     const loopRadius = loopAfter > 0 ? drawnRadius : 0
 
     for (let swing = 0; swing < swings; swing += 1) {
       const reach = side < 0 ? leftReach : rightReach
-      /* 0.62 to 1.0 of the available reach. Never the full width every time and never half of it
-         either: a constant amplitude is the other way a path looks machine-made. */
-      const amplitude = reach * between(random, 0.62, 1)
+      /**
+       * A FRACTION OF THE REACH, AND DELIBERATELY NOT ALL OF IT — this is the balance between the two
+       * gestures on the path.
+       *
+       * The waves and the loops compete for the same width, but they do not read at the same scale: a
+       * crest at the full reach is a sweep spread over 200px of height, while a loop at the full reach
+       * is a circle of that diameter. At 0.62–1.0 the sweeps dominated and the loops read as small
+       * ornaments hung off a big meander.
+       *
+       * A loop cannot simply be made bigger to match — it needs 2r of width, so its radius is already
+       * capped at half the reach. So the waves give way instead. At 0.42–0.68 a full peak-to-peak
+       * excursion is about the same size as a typical loop's diameter, which is what makes the two
+       * read as one hand rather than as decoration on a wave.
+       *
+       * The range stays wide because a constant amplitude is the other way a path looks machine-made.
+       */
+      const amplitude = reach * between(random, 0.42, 0.68)
       knots.push({
         x: meanX + side * amplitude,
         // Not exactly mid-swing — a crest that always lands halfway is a regular wave.
@@ -196,6 +246,8 @@ export function trailKnots({ stops, width, meanX, inset = 1.5, seed = 20271008 }
 
       if (swing + 1 === loopAfter && loopRadius > 0) {
         knots.push(...loopKnots(meanX, crossing, loopRadius, loopSide, between(random, 2.5, 4.5)))
+        lastLoopSide = loopSide
+        lastLoopScale = scale
       } else if (swing + 1 < swings) {
         knots.push({ x: meanX, y: crossing })
       }

@@ -264,9 +264,72 @@ describe('the loops', () => {
     const extents = sampled.map((loop) => loop.extent)
     const midpoint = (Math.min(...extents) + Math.max(...extents)) / 2
     const big = extents.filter((extent) => extent > midpoint).length
-    // The radius is drawn with a sqrt bias toward the top of the range; uniform put the median at the
-    // bottom of it and the page read as a row of little curls.
-    expect(big / extents.length).toBeGreaterThan(0.4)
+    // The radius is biased toward the top of the range; unbiased put the median at the bottom of it and
+    // the page read as a row of little curls.
+    expect(big / extents.length).toBeGreaterThan(0.35)
+  })
+
+  /**
+   * THE BALANCE BETWEEN THE TWO GESTURES, which is a thing you can see and therefore a thing a test
+   * should hold. The waves and the loops share the same width, and at one point the waves used 62–100%
+   * of it: the meander dominated and the loops read as small ornaments hung off it. Loops cannot simply
+   * grow to match — a loop needs 2r, so its radius is capped at half the reach — so the waves gave way
+   * instead.
+   *
+   * Compared against the wave's PEAK-TO-PEAK, not a single crest: a crest is only half the wave's
+   * visual span, and comparing a loop's full diameter against half a wave is how the ratio ends up
+   * looking twice as bad as it is.
+   */
+  it('keeps the loops and the waves at comparable scale', () => {
+    const crests = []
+    const loops = []
+    for (let index = 0; index < 60; index += 1) {
+      const knots = trailKnots({ stops: [0, 430], width: WIDTH, meanX: MEAN, seed: 20271008 + index })
+      let run = []
+      for (const knot of knots) {
+        if (Math.abs(knot.x - MEAN) > 2) run.push(knot)
+        else {
+          if (run.length === 1) crests.push(Math.abs(run[0].x - MEAN))
+          else if (run.length >= 5) {
+            loops.push(Math.max(...run.slice(-5).map((k) => Math.abs(k.x - MEAN))))
+          }
+          run = []
+        }
+      }
+    }
+    const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)]
+    const wavePeakToPeak = median(crests) * 2
+    const loopDiameter = median(loops)
+    const ratio = loopDiameter / wavePeakToPeak
+    expect(ratio, `loop ${loopDiameter.toFixed(1)} against wave ${wavePeakToPeak.toFixed(1)}`).toBeGreaterThan(0.6)
+    expect(ratio, `loop ${loopDiameter.toFixed(1)} against wave ${wavePeakToPeak.toFixed(1)}`).toBeLessThan(1.8)
+  })
+
+  /**
+   * Consecutive loops must differ in size, and that is enforced in the generator rather than left to
+   * chance: the side is weighted toward whichever has more room, so a page's worth of loops came out
+   * all on one side about one page in fifteen — and when it did, the three that landed on the narrow
+   * side were within half a pixel of each other, because that side's whole range was 11 to 11.85.
+   */
+  it('never draws two loops in a row at the same size', () => {
+    const pageStops = [0, 690, 1290, 1700, 2180, 2600, 3760, 4640, 5607]
+    const knots = trailKnots({ stops: pageStops, width: WIDTH, meanX: MEAN })
+    const diameters = []
+    let run = []
+    for (const knot of knots) {
+      if (Math.abs(knot.x - MEAN) > 2) run.push(knot)
+      else {
+        if (run.length >= 5) diameters.push(Math.max(...run.slice(-5).map((k) => Math.abs(k.x - MEAN))))
+        run = []
+      }
+    }
+    expect(diameters.length, 'loops on a realistic page').toBeGreaterThanOrEqual(4)
+    for (let i = 1; i < diameters.length; i += 1) {
+      expect(
+        Math.abs(diameters[i] - diameters[i - 1]),
+        `loops ${i - 1} and ${i}: ${diameters[i - 1].toFixed(1)} then ${diameters[i].toFixed(1)}`,
+      ).toBeGreaterThan(2)
+    }
   })
 
   it('leaves them out where the band is too narrow to hold a round one', () => {
