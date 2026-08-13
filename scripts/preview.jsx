@@ -39,9 +39,27 @@ const STYLES = ['tokens.css', 'base.css', 'trail.css', 'app.css']
  */
 const WIDTHS = [320, 390, 430]
 
+/**
+ * Rewrite `public/` asset paths so they resolve from `scripts/`.
+ *
+ * The app builds image URLs from `import.meta.env.BASE_URL`, which is `/` under vite-node — so the
+ * markup asks for `/photos/x.jpg`, an absolute path that under `file://` means the root of the disk.
+ * A `<base href>` cannot help, because absolute paths ignore it. Without this the harness showed
+ * broken-image icons where the photographs go, which is exactly the part of the page it is least
+ * able to check by any other means.
+ */
+const BASE = import.meta.env?.BASE_URL ?? '/'
+
+function localiseAssets(html) {
+  // The prefix is READ from the app's own base rather than spelled out. vite-node honours
+  // vite.config.js, so BASE_URL here is '/invitation/' — hardcoding either that or a bare '/' is
+  // how this quietly breaks the day the repository is renamed or a custom domain is added.
+  return html.replaceAll(`="${BASE}`, '="../public/')
+}
+
 for (const locale of SUPPORTED) {
   setLocale(locale)
-  const body = renderToStaticMarkup(<App />)
+  const body = localiseAssets(renderToStaticMarkup(<App />))
   const path = join('scripts', `preview-${locale}.html`)
   writeFileSync(
     path,
@@ -76,8 +94,13 @@ ${STYLES}
  * An iframe has its own viewport, so `vw` resolves against its width and the render is
  * faithful.
  */
-/** How tall to make the frames. The page runs to about 4,000px at 320 and less as it widens. */
-const FRAME_HEIGHT = 4600
+/**
+ * How tall to make the frames. Generous on purpose: an iframe CLIPS rather than scrolls into a
+ * screenshot, so a frame shorter than the page silently truncates the review — which it did, once
+ * the photographs pushed the page past 4,600px, and the missing guest list looked like a bug in the
+ * app rather than in the harness.
+ */
+const FRAME_HEIGHT = 7000
 
 function frame(locale, width) {
   return `<iframe src="preview-${locale}.html" width="${width}" height="${FRAME_HEIGHT}" style="border:0;display:block"></iframe>`

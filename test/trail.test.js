@@ -4,15 +4,17 @@
  * This file exists because the meandering path has two properties that are invisible in the
  * source and obvious on the page when they break:
  *
- *   1. THE TILE MUST SEAM. The path is one full wave in a 28x132 box, repeated with `repeat-y`.
- *      Every tile restarts its dash pattern at phase zero, so unless the arc length is an exact
- *      whole multiple of the dash period, the dashes step sideways at every tile boundary —
- *      roughly eight visible seams down the page. Nothing in the CSS states the arc length, so it
- *      is recomputed here from the control points.
+ *   1. THE TILE MUST SEAM. The path is three full waves and a loop in a 30x396 box, repeated with
+ *      `repeat-y`. Every tile restarts its dash pattern at phase zero, so unless the arc length is
+ *      an exact whole multiple of the dash period, the dashes step sideways at every tile boundary.
+ *      Nothing in the CSS states the arc length, so it is recomputed here from the control points.
  *
- *   2. THE TILE MUST BE SMOOTH WHERE IT MEETS ITSELF. The wave's outgoing tangent at the top has
- *      to match its incoming tangent at the bottom, or there is a visible corner at every repeat.
- *      A symmetric-looking path can fail this and look perfectly fine in isolation.
+ *   2. THE TILE MUST BE SMOOTH WHERE IT MEETS ITSELF. The outgoing tangent at the top has to match
+ *      the incoming tangent at the bottom, or there is a visible corner at every repeat. A
+ *      symmetric-looking path can fail this and look perfectly fine in isolation.
+ *
+ *   3. THE LOOP MUST ACTUALLY BE A LOOP. Every other assertion here would still pass on a plain
+ *      wave, so one of them checks that the path genuinely crosses itself.
  *
  * And one that is invisible in a different way: the stroke colour is baked into the data URI,
  * because an SVG inside a `url()` cannot see a custom property. So it can silently drift from
@@ -24,7 +26,7 @@
 
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { arcLength, parseCubicPath, tangents } from '../scripts/path-math.js'
+import { arcLength, cubicPoint, parseCubicPath, tangents } from '../scripts/path-math.js'
 
 const trailCss = readFileSync('src/styles/trail.css', 'utf8')
 const appCss = readFileSync('src/styles/app.css', 'utf8')
@@ -84,19 +86,57 @@ describe('the trail spine', () => {
   const pattern = dashPattern(svg)
   const length = arcLength(segments)
 
-  it('is one full wave: two mirrored half-waves', () => {
-    expect(segments).toHaveLength(2)
+  it('is six half-waves and a four-arc loop', () => {
+    expect(segments).toHaveLength(10)
   })
 
   /**
-   * THE ASSERTION THIS FILE IS FOR. 137.880883 / 9.192059 = 15 exactly. The tolerance is a
+   * THE LOOP HAS TO BE A LOOP. Every other assertion in this file would still pass if somebody
+   * flattened the figure back into a plain wave — the tangents would still match, the arc length
+   * could be re-divided, the amplitude would still fit. So this one checks the thing that actually
+   * makes it a loop: the path CROSSES ITSELF.
+   *
+   * Sample densely, then look for two samples that are far apart along the path and close together
+   * in space. Far apart is what rules out neighbouring samples, which are trivially close.
+   */
+  it('crosses itself, which is what makes the loop a loop', () => {
+    const PER_SEGMENT = 200
+    const samples = []
+    for (const segment of segments) {
+      for (let i = 0; i < PER_SEGMENT; i += 1) samples.push(cubicPoint(segment, i / PER_SEGMENT))
+    }
+
+    // The CLOSEST such pair, not the first one under a threshold: near a true crossing there are
+    // hundreds of pairs within any tolerance, and the first one encountered is an arbitrary member
+    // of that cloud sitting up to a sample-step away from the crossing itself.
+    let nearest = null
+    for (let a = 0; a < samples.length; a += 1) {
+      // A whole segment apart, so neighbouring samples — which are trivially close — cannot match.
+      for (let b = a + PER_SEGMENT; b < samples.length; b += 1) {
+        const distance = Math.hypot(samples[a][0] - samples[b][0], samples[a][1] - samples[b][1])
+        if (distance < 0.4 && (!nearest || distance < nearest.distance)) {
+          nearest = { distance, point: samples[a] }
+        }
+      }
+    }
+
+    expect(nearest, 'a self-intersection').not.toBe(null)
+
+    // And it crosses ON THE MEAN LINE, where the waypoint discs sit: the loop is attached to the
+    // path at a single point rather than bulging off to one side of it.
+    const centre = Number(attribute(svg, 'width')) / 2
+    expect(Math.abs(nearest.point[0] - centre)).toBeLessThan(0.5)
+  })
+
+  /**
+   * THE ASSERTION THIS FILE IS FOR. 476.110017 / 9.155962 = 52 exactly. The tolerance is a
    * thousandth of a dash period, which is far below anything visible and far above the sampling
    * error in `arcLength`.
    */
   it('has an arc length that is a whole number of dash periods, so its tiles seam', () => {
     const periods = length / pattern.period
     expect(periods).toBeCloseTo(Math.round(periods), 3)
-    expect(Math.round(periods)).toBe(15)
+    expect(Math.round(periods)).toBe(52)
   })
 
   it('is smooth where it meets its own repeat', () => {
@@ -125,19 +165,41 @@ describe('the trail spine', () => {
   })
 
   /**
-   * The wave must stay inside a waypoint disc's radius. This is what makes a curving path free:
-   * the disc is --trail-node-size wide and centred on the mean line, so as long as the amplitude
-   * is under its radius, the path never widens the trail's footprint and never costs the text
+   * The figure must stay inside a waypoint disc's radius. This is what makes a curving, looping path
+   * free: the disc is --trail-node-size wide and centred on the mean line, so as long as the ink
+   * stays inside its radius, the path never widens the trail's footprint and never costs the text
    * column a pixel. --trail-node-size floors at 28px, so the radius floors at 14.
+   *
+   * MEASURED ON THE CURVE, NOT THE CONTROL HULL. An earlier version took the max over control
+   * points, which is a valid bound and a bad one: the loop's control points reach 15.07 from the
+   * centre while the drawn curve reaches 13.855, so it failed a figure that fits. A control hull
+   * over-estimates by an amount that depends on the curvature, which for an ellipse arc is a lot.
    */
+  const sampled = segments.flatMap((segment) =>
+    Array.from({ length: 501 }, (_, i) => cubicPoint(segment, i / 500)),
+  )
+
   it('swings less far than the smallest waypoint disc\'s radius', () => {
     const centre = Number(attribute(svg, 'width')) / 2
-    const xs = segments.flat().map(([x]) => x)
-    const amplitude = Math.max(...xs.map((x) => Math.abs(x - centre)))
+    const reach = Math.max(...sampled.map(([x]) => Math.abs(x - centre)))
     const smallestNode = Number(/--trail-node-size:\s*clamp\((\d+)px/.exec(tokensCss)[1])
-    expect(amplitude).toBeLessThan(smallestNode / 2)
+    expect(reach).toBeLessThan(smallestNode / 2)
     // And it is actually a meander rather than a twitch — the whole point of the change.
-    expect(amplitude).toBeGreaterThan(6)
+    expect(reach).toBeGreaterThan(6)
+  })
+
+  /**
+   * And the ink has to fit the tile it is drawn in, stroke included — half the stroke width hangs
+   * outside the path on each side, and anything past the viewBox is CLIPPED rather than overflowing.
+   * The loop is the part that gets close: it reaches 28.855 in a 30-wide box, so with a 1.5 stroke
+   * there is 0.395 to spare.
+   */
+  it('fits inside its own tile, stroke and all', () => {
+    const width = Number(attribute(svg, 'width'))
+    const half = Number(attribute(svg, 'stroke-width')) / 2
+    const xs = sampled.map(([x]) => x)
+    expect(Math.min(...xs) - half).toBeGreaterThan(0)
+    expect(Math.max(...xs) + half).toBeLessThan(width)
   })
 
   it('declares the same intrinsic size as the tokens that lay it out', () => {
@@ -194,11 +256,20 @@ describe("the hero's rule", () => {
    * far sharper wave than the spine at the same glance.
    */
   it('curves at the same ratio as the spine, at a sixth of the size', () => {
+    /**
+     * ONE FULL WAVE ONLY — the first two segments of each path.
+     *
+     * It is tempting to measure the whole path, and that was right until the spine grew a loop:
+     * its tile is now 396 tall and holds three waves plus the loop, so the tile's height stopped
+     * being a wavelength and the loop's reach stopped being the wave's amplitude. Two segments is
+     * exactly one full wave in both paths, which is the shape a reader is comparing.
+     */
     function ratio(pathSegments, axis) {
-      const values = pathSegments.flat().map((point) => point[axis])
+      const wave = pathSegments.slice(0, 2).flat()
+      const values = wave.map((point) => point[axis])
       const mean = (Math.max(...values) + Math.min(...values)) / 2
       const amplitude = Math.max(...values.map((value) => Math.abs(value - mean)))
-      const wavelength = Math.max(...pathSegments.flat().map((point) => point[1 - axis]))
+      const wavelength = Math.max(...wave.map((point) => point[1 - axis]))
       return amplitude / wavelength
     }
     const spine = parseCubicPath(attribute(extractSvg(trailCss, '\\.trail::before'), 'd'))

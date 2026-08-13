@@ -46,7 +46,8 @@ export const text = (en, ja, zh) => ({ en, ja, 'zh-Hant': zh })
  * lucky — the venue's below is not.
  */
 export const COUPLE = {
-  one: text('Waylon', 'ウェイロン', '偉倫'), // DRAFT — both CJK renderings are still guesses.
+  /** ウェーロン is Waylon's own spelling. The Chinese slot is still mine, and still a guess. */
+  one: text('Waylon', 'ウェーロン', '偉倫'), // DRAFT — the Chinese rendering only.
   two: text('Asuka', '明佳', '明佳'),
   /** Whose name comes first. Not alphabetised, not gendered — just a decision. */
   order: ['one', 'two'],
@@ -72,12 +73,15 @@ export const DAY = {
   /**
    * 'HH:MM' 24-hour wall clock in `timezone`, formatted per locale at render.
    *
-   * `start` is the CEREMONY, and it is also what the calendar file uses for DTSTART. The page
-   * asks guests to arrive from half ten; if you would rather their calendars said 10:30, change
-   * it here and the .ics follows.
+   * `start` is the CEREMONY and `end` is the moment the group gets back to Togoshi Ginza, so the
+   * calendar file blocks the WHOLE DAY rather than just the reception — which is the useful thing
+   * for a guest who has to decide whether they can come. It is a ten-hour event because it really
+   * is one: a ceremony in Mito, an afternoon out, dinner, and the train home together.
+   *
+   * If you would rather a guest's calendar covered only the part at the venue, set `end` to 13:30.
    */
   start: '11:00',
-  end: '18:00', // DRAFT — how late the day actually runs.
+  end: '21:00',
 }
 
 /**
@@ -89,36 +93,29 @@ export const DAY = {
  * `at` is 'HH:MM' or null. Null prints no time at all, which is the honest way to say
  * "somewhere in the afternoon" — a made-up 15:30 becomes a promise.
  *
- * ONLY THE CEREMONY IS CONFIRMED. Everything around it is a plausible shape for a lunch
- * reception starting at eleven, written so the page reads properly — the times are mine, not
- * yours. Sunset in Mito in early October is about a quarter past five, which is what the lantern
- * row is timed against.
+ * EVERY TIME HERE IS REAL. What is still mine is the wording around them, and two specifics called
+ * out with markers: how far Kairakuen actually is, and where dinner is.
+ *
+ * NOTE THE SHAPE OF THIS DAY, because it is what the trail on this page is drawing. It is not a
+ * reception that ends at a venue — it is a route: a ceremony in Mito, a whole afternoon with
+ * nothing scheduled in it, dinner in town, and the train back to Togoshi Ginza together at nine.
+ * A guest reading this needs to understand they are being invited to a day, not to an hour.
  */
 export const SCHEDULE = [
-  {
-    at: '10:30', // DRAFT
-    icon: 'tent',
-    title: text('Arrive & wander', '集合・散策', '抵達・散步'),
-    note: text(
-      'Come from half past ten. There is coffee, there are chairs in the shade, and nobody is being seated in rows.',
-      '十時半からお越しいただけます。コーヒーと木陰の椅子をご用意しています。席順はありません。',
-      '十點半後即可入場。備有咖啡與樹蔭下的座位，不需照順序入座。',
-    ),
-  },
   {
     at: '11:00',
     icon: 'rings',
     title: text('The ceremony', '挙式', '婚禮儀式'),
     note: text(
-      'Outside in the garden, and short — about twenty minutes. If it rains we move indoors and nothing else changes.',
-      '庭で行う、二十分ほどの短い式です。雨天の場合は屋内に移りますが、それ以外は変わりません。',
-      '在庭園中舉行，大約二十分鐘。若遇雨天則移至室內，其餘一切照舊。',
+      'Outside in the garden if the weather allows, and short. Come a little before eleven, so that nobody is arriving in the middle of it.',
+      '天気がよければ庭で、短い式です。式の途中に到着される方がないよう、十一時少し前にお越しいただけると安心です。',
+      '天氣許可的話在庭園舉行，儀式很短。請在十一點前稍早抵達，以免在儀式進行中入場。',
     ),
   },
   {
-    at: '11:45', // DRAFT
+    at: '12:00',
     icon: 'basket',
-    title: text('Long lunch', '会食', '午宴'),
+    title: text('Lunch', '会食', '午宴'),
     note: text(
       'One long table, and as long as we can make it last. Tell us in advance about anything you cannot eat and we will simply make sure there is something for you.',
       '長いテーブルをひとつ、できるだけゆっくりと。お召し上がりになれないものがあれば、事前にお知らせください。',
@@ -126,43 +123,53 @@ export const SCHEDULE = [
     ),
   },
   {
-    at: '13:30', // DRAFT
+    at: '13:30',
     icon: 'kettle',
-    title: text('Coffee, cake, cards', 'コーヒーとケーキ', '咖啡、蛋糕、紙牌'),
+    title: text('The formal half ends', 'お開き', '正式行程結束'),
     note: text(
-      'The slow middle of the day. Blankets out on the grass, shoes off, a hand of cards if you want one.',
-      '一日のいちばんのんびりした時間です。芝生にブランケットを広げて、靴を脱いで、トランプでも。',
-      '一天中最悠閒的時光。在草地上攤開毯子、脫掉鞋子，想玩牌也可以。',
+      'And nobody has to go anywhere. The rest of the day is the part we are actually looking forward to.',
+      'とはいえ、どこかへ移動する必要はありません。ここからが、私たちがいちばん楽しみにしている時間です。',
+      '但誰都不必急著離開。接下來才是我們最期待的部分。',
     ),
   },
   {
-    at: '14:45', // DRAFT — and check how close Kairakuen actually is on foot.
+    at: '14:00',
     icon: 'pine',
-    title: text('A short walk', '散歩', '散步'),
+    title: text('Out into Mito', '水戸を歩く', '走走水戶'),
     note: text(
-      'Kairakuen is a few minutes away and the paths are flat. October is the easy half of the year for it — entirely optional, and the reason we keep mentioning your shoes.',
-      '偕楽園は数分の距離で、道は平坦です。十月はいちばん歩きやすい季節です。任意ですが、靴のことを繰り返しお伝えしている理由です。',
-      '偕樂園就在幾分鐘外，路面平緩。十月正是最好走的季節——純屬自由參加，也是我們一直提醒您留意鞋子的原因。',
+      'Kairakuen is a few minutes away and its paths are flat. This is the stretch of the day with no schedule at all — come along, or go and find your own thing and meet us for dinner.',
+      '偕楽園は数分の距離で、道は平坦です。この時間は予定を決めていません。ご一緒でも、それぞれで過ごして夕食で合流でも。',
+      '偕樂園就在幾分鐘外，路面平緩。這段時間完全沒有安排——一起走走，或各自去逛，晚餐再會合都可以。',
+    ), // DRAFT — confirm how far Kairakuen actually is, and whether there is a plan or genuinely not.
+  },
+  {
+    at: '17:30',
+    icon: 'bowl',
+    title: text('A light dinner', '軽めの夕食', '簡單的晚餐'),
+    note: text(
+      'Somewhere in town, and nothing formal about it. Stay in whatever you wore.',
+      '市内のどこかで、かしこまらない席です。そのままの服装でどうぞ。',
+      '在市區某處，很隨意。穿原本的衣服就好。',
+    ), // DRAFT — where.
+  },
+  {
+    at: '19:00',
+    icon: 'train',
+    title: text('Trains home', '帰路へ', '搭車返程'),
+    note: text(
+      'Back towards Tokyo together, on the Joban line.',
+      '常磐線で、みんなで東京方面へ。',
+      '搭常磐線，大家一起往東京方向。',
     ),
   },
   {
-    at: '17:00', // DRAFT
+    at: '21:00',
     icon: 'lantern',
-    title: text('Lanterns & last drinks', 'ランタンと乾杯', '燈火與最後一杯'),
+    title: text('Back in Togoshi Ginza', '戸越銀座へ', '回到戶越銀座'),
     note: text(
-      'The sun is behind the trees by about a quarter past five, and it gets cold faster than you expect. Bring the extra layer you were going to leave in the car.',
-      '五時過ぎには日が木立の向こうに沈み、思ったより早く冷えてきます。車に置いていこうとした一枚を、ぜひお持ちください。',
-      '五點過後太陽就落到樹後，會比想像中更快變冷。原本想留在車上的那件外套，請帶著。',
-    ),
-  },
-  {
-    at: '18:00', // DRAFT
-    icon: 'moon',
-    title: text('Home', 'お開き', '散會'),
-    note: text(
-      'There are limited expresses back towards Tokyo well into the evening. We will be the two people waving.',
-      '東京方面への特急は夜まで走っています。手を振っている二人が私たちです。',
-      '往東京方向的特急列車到晚間都還有班次。揮手的那兩個人就是我們。',
+      'About nine. That is the day — and thank you for spending the whole of it with us.',
+      '九時ごろ。これで一日はおしまいです。最後までご一緒いただき、ありがとうございます。',
+      '大約九點。這一天就到這裡——謝謝你們陪我們走完全程。',
     ),
   },
 ]
@@ -337,10 +344,13 @@ export const STORY = [
   {
     year: '2027',
     title: text('This bit', 'そして、この日', '而現在'),
+    /* "The fifteen of US", not "fifteen of you" — the two of them are inside that fifteen, which is
+       also how GUESTS is written. It said "you" while the guest list was empty and became wrong the
+       moment the couple were listed among the fifteen. */
     note: text(
-      'Fifteen of you, one long table, and a garden in Mito in October. That is the whole plan.',
-      '十五人の皆さんと、一つの長いテーブルと、十月の水戸の庭。それが計画のすべてです。',
-      '十五位親友、一張長桌，以及十月水戶的一座庭園。這就是全部的計畫。',
+      'The fifteen of us, one long table, and a garden in Mito in October. That is the whole plan.',
+      '十五人で、一つの長いテーブルを囲んで、十月の水戸の庭で。それが計画のすべてです。',
+      '我們十五個人、一張長桌，以及十月水戶的一座庭園。這就是全部的計畫。',
     ),
   },
 ]
@@ -369,23 +379,58 @@ export const HERO = {
  * you were reading does not jump.
  *
  * `alt` is per-locale and must DESCRIBE, not caption — "the two of us on a ridge at dawn", not
- * "our favourite photo".
+ * "our favourite photo". A reader who cannot see the photograph should learn the same thing a
+ * reader who can does; that is why the venue shot's alt says what the entrance LOOKS LIKE, which
+ * is the useful part when you are trying to find a door.
+ *
+ * Either of these can become the hero instead: set `HERO.src` to the filename (moving the file up
+ * to `public/`) and uncomment the preload in index.html. The venue entrance is the better of the
+ * two for it — it is a path leading to a door, which is the same idea as the trail.
  */
 export const PHOTOS = [
-  // DRAFT — drop files into public/photos/ and describe them here. For example:
-  // { src: 'garden.jpg', w: 1600, h: 1067, alt: text('The two of us in the garden', '庭に立つ二人', '站在庭園裡的兩人') },
+  {
+    src: 'venue-entrance.jpg',
+    w: 1080,
+    h: 1350,
+    alt: text(
+      'The approach to the venue: a layered timber gateway over a stone path, leading to the doors',
+      '会場へのアプローチ。石畳の道の上に木の門が幾重にも重なり、扉へと続いている',
+      '通往會場的入口：石板路上層層疊起的木造門廊，一路延伸至大門',
+    ),
+  },
+  {
+    src: 'ceremony-and-table.jpg',
+    w: 1080,
+    h: 1350,
+    alt: text(
+      'The ceremony backdrop — a gold ring hung with pink chiffon and white flowers — and a round table laid with pink plates and place cards',
+      '挙式の背景。金のリングにピンクのシフォンと白い花をあしらったものと、ピンクの皿と席札を並べた丸テーブル',
+      '婚禮背景：金色圓環上垂著粉色雪紡與白花；以及擺好粉色餐盤與名牌的圓桌',
+    ),
+  },
 ]
 
 /**
- * Everybody who is coming. EMPTY IS VALID and hides the section.
+ * Everybody who is coming — ALL FIFTEEN, the two of you included, because fifteen was always the
+ * whole party rather than the guest count. EMPTY IS VALID and hides the section.
+ *
+ * AN ARRAY OF GROUPS, not a flat list, and the grouping carries meaning without naming it: the
+ * couple, then each side, then the grandparents. Rendered as clusters with a gap between them and
+ * NO headings — a label per group would mean inventing a relationship for each ("Asuka's family",
+ * "Waylon's side") that nobody stated, and getting one of those wrong on a wedding invitation is a
+ * worse outcome than leaving them unlabelled. The shape alone says it.
  *
  * Fifteen people is small enough that naming them is the warmest thing the page can do, and it is
  * also why there is no seating chart anywhere in this app: with one long table, the plan is that
  * people sit down.
  */
 export const GUESTS = [
-  // DRAFT — the fifteen, however they would like to be named. Plain strings:
-  // 'Kenji & Mika', 'Auntie Su-lin', 'The Watanabes (all four)',
+  ['Waylon', 'Asuka'],
+  ['Miki', 'Kyoko', 'Tomona', 'Kota', 'Harupi'],
+  ['Chijang', 'Wanjiun', 'Ian'],
+  // DRAFT — these five need their real names. "Grandpa 1" must not reach a printed page.
+  ['Grandpa 1', 'Grandma 1', 'Grandpa 2', 'Grandma 2'],
+  ['Grandma 3'], // DRAFT
 ]
 
 /**

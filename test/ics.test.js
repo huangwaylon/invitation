@@ -80,9 +80,10 @@ describe('buildIcs', () => {
   })
 
   it('starts and ends at the hours content.js gives, converted from the venue zone', () => {
-    // 11:00 and 18:00 Asia/Tokyo, which is UTC+9 all year with no DST.
+    // 11:00 and 21:00 Asia/Tokyo, which is UTC+9 all year with no DST. The event deliberately spans
+    // the whole day, from the ceremony to getting back to Togoshi Ginza — see DAY in content.js.
     expect(field(text, 'DTSTART')).toBe('20271008T020000Z')
-    expect(field(text, 'DTEND')).toBe('20271008T090000Z')
+    expect(field(text, 'DTEND')).toBe('20271008T120000Z')
   })
 
   it('is byte-identical between builds, so a deploy does not churn the file', () => {

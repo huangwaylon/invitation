@@ -577,9 +577,16 @@
    as the rest of the page put together, and three makes each photograph a thumbnail
    nobody can see. */
 
+/* ONE COLUMN ON A PHONE, TWO WHEN THERE IS ROOM, and no media query: `auto-fit` with a minimum
+   does it, and `min(100%, 14rem)` is what stops the minimum from overflowing a 320px screen.
+
+   It used to be a fixed two columns with a square crop, which was wrong for these photographs
+   specifically — both are 4:5 portraits and one of them is a two-panel composite, so a square crop
+   threw away half of it, and side by side on a 320px screen each was 118px wide. Full width and
+   uncropped, they are 240px wide and you can actually see them. */
 .gallery {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   gap: var(--space-2);
 }
 
@@ -598,14 +605,14 @@
   overflow: hidden;
 }
 
+/* NO `aspect-ratio` AND NO CROP: each photograph keeps its own shape. The reflow protection comes
+   from the `width` and `height` ATTRIBUTES that Gallery.jsx sets from content.js — a browser
+   computes the intrinsic ratio from those and reserves the right box before the file arrives, which
+   is the same guarantee a CSS aspect-ratio gives without also deciding the composition. That is why
+   content.js requires real pixel dimensions per entry and check:content fails without them. */
 .gallery__img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* Set per-photo from content.js's w/h as an inline style. Without a declared ratio the
-     page reflows as each image lands, which on a phone means the paragraph somebody is
-     reading jumps up the screen. */
-  aspect-ratio: 1;
+  height: auto;
 }
 
 /* ---- The lightbox ------------------------------------------------------
@@ -720,12 +727,19 @@
    fifteen names are a guest list, and the warmest thing the page can do with them is
    simply write them out. */
 
+/* Two levels of gap, and the difference between them is the whole point: --space-5 between groups
+   against --space-2 within one, so the clusters read as clusters without a heading having to say so. */
 .guests {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-5);
   font-family: var(--font-serif);
   font-size: var(--fs-body);
   color: var(--ink);
+}
+
+.guests__group {
+  display: grid;
+  gap: var(--space-2);
 }
 
 .guests__row {

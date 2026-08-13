@@ -17,10 +17,13 @@ venue. Anyone with the link opens it normally.
 
 ## The idea
 
-The invitation is a **trail**. One dashed path *meanders* down the whole length of the page — a
-children's-map wiggle rather than a ruled line — and every section is a waypoint on it: a disc with
-a line-art glyph, a heading, and as few words as the thing needs. Ten waypoints from the seal at
-the top to the summit mark at the bottom:
+The invitation is a **trail**. One dashed path meanders down the whole length of the page, curling
+into a loop every so often the way a route on a children's map does, and every section is a waypoint
+on it: a disc with a line-art glyph, a heading, and as few words as the thing needs.
+
+The day it draws is a route rather than a venue — a ceremony in Mito, an afternoon with nothing
+scheduled in it, dinner in town, and the train back to Togoshi Ginza together at nine — so the
+waypoints run from the seal at the top to the summit mark at the bottom:
 
 | | |
 | --- | --- |
@@ -29,14 +32,14 @@ the top to the summit mark at the bottom:
 | Getting there | train, car, plane, and where to stay |
 | What to wear, what to bring | the dress code and a four-item day-camp kit |
 | How we got here | four stops, 2019 to now |
-| Photographs | a grid and a native-`<dialog>` lightbox — **absent until you add photos** |
+| Photographs | the venue's entrance and the room, full width, with a native-`<dialog>` lightbox |
 | Good to know | five `<details>` rows, closed by default |
-| The fifteen | everybody's name, written out — **absent until you add them** |
+| The fifteen | all fifteen names, the couple included, in five unlabelled groups |
 | The closing | the calendar file, and how to reach you |
 
-Two of those render only when there is something to put in them. A gallery of placeholder
-rectangles and a guest list of nobody are both worse than the section simply not being there,
-so `App.jsx` drops them and the trail closes up, plants and all.
+Two of those are conditional — with no photographs and no names in `content.js`, `App.jsx` drops
+them and the trail closes up, plants and all. A gallery of placeholder rectangles and a guest list of
+nobody are both worse than the section simply not being there.
 
 ## Everything about the day lives in one file
 
@@ -71,13 +74,15 @@ before the content is real.
    or rewrite.
 2. **Add the fifteen** to `GUESTS`, however they would like to be named. Until then that
    waypoint does not render.
-3. **Add photographs**, optionally: drop files in `public/photos/`, then list each one in
-   `PHOTOS` with its real pixel `w`/`h` and a per-language `alt` that *describes* rather than
-   captions. The dimensions are what stop the page reflowing as images land.
-4. **Set a hero photograph**, optionally: `HERO.src`, relative to `public/`. Then uncomment the
-   preload in `index.html` and match the filename. Without one the hero is a drawn dashed card
-   with the couple's mark set into its top edge like a seal — that is the default, not a
-   fallback, and it is finished.
+3. **More photographs**, optionally: drop files in `public/photos/`, then list each one in `PHOTOS`
+   with its real pixel `w`/`h` and a per-language `alt` that *describes* rather than captions. The
+   dimensions are what stop the page reflowing as images land — there is no CSS aspect-ratio, the
+   `width`/`height` attributes do it.
+4. **A hero photograph**, optionally: set `HERO.src` to a filename in `public/`, then uncomment the
+   preload in `index.html` and match it. Without one the hero is a drawn dashed card with the
+   couple's mark set into its top edge like a seal — that is the default, not a fallback, and it is
+   finished. `photos/venue-entrance.jpg` is the best candidate if you want one: it is a path leading
+   to a door, which is the same idea as the trail.
 5. **Fill in `CONTACT`** — an email, a LINE ID, whatever is true. Each row hides itself when
    empty.
 6. **Set `DRAFT = false`** at the top of `content.js`. The yellow banner disappears and
@@ -105,16 +110,26 @@ rendered inside an iframe, which has a viewport of its own and so resolves `vw` 
 
 ## Decisions worth knowing about
 
-**The meander is a tiled SVG, and its dash period is derived rather than chosen.** The path is one
-full wave in a 28x132 box, repeated with `repeat-y` — tiling is what keeps every curve and every
-dash at its drawn size whether the page is short or long, where a single stretched SVG would turn
-the same path into a ripple or a zigzag depending on how much text there is. The catch is that each
-tile restarts its dash pattern at phase zero, so the wave's arc length has to be an exact whole
-multiple of the dash period or the dashes step sideways at all eight tile boundaries. It is
-137.880883 long, so the period is that over 15. [`test/trail.test.js`](test/trail.test.js)
-recomputes it from the stylesheet, along with the tangent continuity at the seam and the fact that
-the amplitude stays inside a waypoint disc's radius — which is what makes the curve cost the text
-column nothing.
+**The meandering, looping path is a tiled SVG, and its dash period is derived rather than chosen.**
+The tile is three full waves and one loop in a 30x396 box, repeated with `repeat-y`. Tiling is what
+keeps every curve and every dash at its drawn size whether the page is short or long — a single
+stretched SVG would turn the same path into a ripple or a zigzag depending on how much text there is.
+The catch is that each tile restarts its dash pattern at phase zero, so the figure's arc length has
+to be an exact whole multiple of the dash period or the dashes step sideways at every tile boundary.
+It is 476.110017 long, so the period is that over 52.
+
+**The loop is an ellipse, and that is a budget decision rather than a stylistic one.** It hangs off a
+diagonal, so a circle's width and height grow together — at a radius that kept it inside a waypoint
+disc it came out 14px across and read as a wobble. Stretched along the path direction instead, it is
+17.7 wide by 23 tall for the same horizontal cost, because vertical space on this page is free. It
+reaches 13.855 from the mean line against the 14 a waypoint disc's radius allows, which is what makes
+a looping path cost the text column nothing at all.
+
+[`test/trail.test.js`](test/trail.test.js) recomputes all of it from the stylesheet: the arc length,
+the tangent continuity at the tile seam, that the ink plus its stroke fits inside the tile, that the
+reach stays under the disc radius — and that the path genuinely **self-intersects**, since every
+other one of those assertions would still pass on a path somebody had quietly flattened back into a
+wave.
 
 **There is no RSVP, and that is a decision.** At fifteen guests the couple already knows who is
 coming; a form would be ceremony for its own sake, and on a static page it would mean either a

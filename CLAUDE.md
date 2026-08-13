@@ -64,14 +64,26 @@ comment next to the code it governs; read that first.
   page and a zigzag on a long one.
 - **THE DASH PERIOD IS DERIVED, NOT CHOSEN: the tile's arc length must be a whole multiple of it.**
   Every tile restarts its dash pattern at phase zero, so anything else steps the dashes sideways at
-  each of the ~8 tile boundaries down the page. The spine is 137.880883 / 15; the hero's rule is
-  not tiled and instead solves for ending on a dash rather than mid-gap. `test/trail.test.js`
-  re-derives both from the stylesheets — including the tangent continuity at the tile seam, which a
-  symmetric-looking path can fail while looking fine in isolation.
-- **The wave's amplitude must stay under `--trail-node-size / 2`.** That is what makes a curving
-  path free: the disc is centred on the mean line, so as long as the swing stays inside its radius,
-  the path never widens the trail's footprint and never costs the text column a pixel. It is 11
-  against a floor radius of 14, and there is a test.
+  every tile boundary down the page. The spine is 476.110017 / 52; the hero's rule is not tiled and
+  instead solves for ending on a dash rather than mid-gap. `test/trail.test.js` re-derives both from
+  the stylesheets — including the tangent continuity at the tile seam, which a symmetric-looking path
+  can fail while looking fine in isolation.
+- **THE LOOP MUST STILL BE A LOOP.** Every other assertion about the path would pass on a plain
+  wave, so one test checks that it genuinely self-intersects. It is attached to the path at a single
+  point and adds no height, which is why it can be dropped into a wave without a corner: a loop is
+  entered and left on the same tangent.
+- **The loop is an ellipse elongated ALONG the path, and it cannot simply be scaled up.** It hangs
+  off a diagonal, so a circle's width and height grow together and a circle big enough to read
+  escapes the disc radius. Stretching it along the tangent buys height, which is free here, for no
+  extra width.
+- **The figure's reach must stay under `--trail-node-size / 2`.** That is what makes a curving,
+  looping path free: the disc is centred on the mean line, so as long as the ink stays inside its
+  radius, the path never widens the trail's footprint and never costs the text column a pixel. It is
+  13.855 against a floor radius of 14 — there is almost no margin left, so a bigger loop means a
+  wider gutter and a narrower measure.
+- **Measure the CURVE, not the control hull.** A cubic's control points bound it, and for the loop's
+  elliptical arcs they overestimate by 1.2px — enough to fail a figure that actually fits. The tests
+  sample the curve.
 - **The path's stroke colour is HARDCODED in the data URI and cannot be otherwise.** An SVG inside
   a `url()` is a separate document: no `currentColor`, no custom properties. So it can drift from
   `--trail` silently, and `test/trail.test.js` asserts it against tokens.css. The same goes for
@@ -123,6 +135,18 @@ comment next to the code it governs; read that first.
 - **The `.ics` is a build artefact, not a runtime blob.** A `data:` href is blocked as a top-level
   navigation and a `blob:` URL would need the CSP widened. If you find yourself widening it,
   re-read `src/lib/ics.js` first.
+
+## The fifteen
+
+- **GUESTS is an array of GROUPS and includes the couple.** Fifteen was always the whole party, not
+  the guest count, so the two of them are the first group. `Guests.jsx` renders each group as its own
+  `<ul>` with a wider gap between them.
+- **The groups carry no headings, deliberately.** Labelling them would mean inventing a relationship
+  per cluster ("Waylon's side"), and getting one wrong on a wedding invitation is worse than leaving
+  the shape to speak. Do not add labels without being told what they are.
+- **Anything reading "Grandpa 1" must not ship.** Those five are the user's own placeholders,
+  carried through verbatim and marked, and they are the single most embarrassing thing on the page if
+  it goes out as-is.
 
 ## Gotchas
 

@@ -57,7 +57,14 @@ export function PeaksIcon(props) {
    THE DAY — one glyph per row of the schedule
    ====================================================================== */
 
-/** A ridge tent. The day-camping mark, and the first thing that happens. */
+/**
+ * A ridge tent. The day-camping mark.
+ *
+ * NOT CURRENTLY ON THE PAGE — the schedule opens at the ceremony now, with no arrival row for this
+ * to sit beside. It stays in the set because it is the couple's own subject and the obvious glyph
+ * the moment a "come early and sit on the grass" row exists. `Glyph` returns nothing for a name
+ * content.js does not use, so an unused entry costs a reader nothing.
+ */
 export function TentIcon(props) {
   return (
     <svg {...base} {...props}>
@@ -111,6 +118,24 @@ export function KettleIcon(props) {
   )
 }
 
+/**
+ * A steaming bowl, for the light dinner in town.
+ *
+ * A bowl rather than a plate-and-cutlery or a wine glass, and the reason is the same one the
+ * sibling app gives for its Food category: a bowl reads as a meal to an English, a Japanese and a
+ * Taiwanese reader alike, where a knife and fork reads as Western food specifically and a cake
+ * reads as dessert. The steam is what stops it being a hat.
+ */
+export function BowlIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.4 11.6h17.2a8.6 8.6 0 0 1-17.2 0Z" />
+      <path d="M7 20.2h10" />
+      <path d="M10 8.6c0-1.4 1.2-1.7 1.2-3.1M14 8.6c0-1.4 1.2-1.7 1.2-3.1" />
+    </svg>
+  )
+}
+
 /** A conifer. The short flat walk through the trees. */
 export function PineIcon(props) {
   return (
@@ -137,7 +162,11 @@ export function LanternIcon(props) {
   )
 }
 
-/** A crescent and two small stars. Going home. */
+/**
+ * A crescent and two small stars. Also not currently used: the day now ends at nine in Togoshi
+ * Ginza, and a shotengai at nine is a street full of lit signs rather than a night sky, so the
+ * lantern carries that row instead.
+ */
 export function MoonIcon(props) {
   return (
     <svg {...base} {...props}>
@@ -527,6 +556,7 @@ export const GLYPHS = {
   tent: TentIcon,
   rings: RingsIcon,
   basket: BasketIcon,
+  bowl: BowlIcon,
   kettle: KettleIcon,
   pine: PineIcon,
   lantern: LanternIcon,

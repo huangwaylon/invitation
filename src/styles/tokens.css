@@ -217,20 +217,22 @@
      comfortable 34px gutter on a monitor, with no media query anywhere. */
   --trail-x: clamp(15px, 4.5vw, 19px);
   --trail-node-size: clamp(28px, 8vw, 34px);
-  /* The 30px floor is set by the CURVE, not by taste. The path swings 11px either side of the
-     mean line, and the flora grows in the strip past that swing — so the text has to start clear
-     of amplitude + plant. It was 22 while the path was straight. */
-  --trail-gutter: clamp(30px, 8vw, 38px);
+  /* The floor is set by the CURVE, not by taste. The figure reaches 12.8px from the mean line at
+     the loop, and the flora grows in the strip past that — so the text has to start clear of the
+     loop plus a plant. It was 22 while the path was straight and 30 before the loop was added. */
+  --trail-gutter: clamp(32px, 8vw, 40px);
 
   /* One full wave of the path, as drawn in the tiled SVG in trail.css. These two are the image's
      own intrinsic size and MUST match the `width`/`height` in that data URI — the CSS sets
      `background-size` from them, and a mismatch scales the curve and the dashes.
 
-     The amplitude (11) is not a token because only the SVG's control points can express it; what
-     matters about it is recorded where it is used: it stays inside --trail-node-size / 2, so the
-     wave never escapes a waypoint disc's footprint and a curving path costs the text no width. */
-  --trail-tile-w: 28px;
-  --trail-tile-h: 132px;
+     The wave's amplitude (11) and the loop's radius (7) are not tokens, because only the SVG's
+     control points can express them. What matters about them is recorded where they are used: the
+     furthest the figure reaches from the mean line is 12.8, which stays inside --trail-node-size / 2
+     even at its 28px floor — so neither the wave nor the loop escapes a waypoint disc's footprint,
+     and a curving, looping path costs the text column no width at all. */
+  --trail-tile-w: 30px;
+  --trail-tile-h: 396px;
 }
 
 /* ---- Per-locale fonts --------------------------------------------------
